@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom/vitest'
-import { vi } from 'vitest'
+import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -17,4 +17,16 @@ Object.defineProperty(window, 'matchMedia', {
         dispatchEvent: vi.fn(() => true),
       }) as MediaQueryList,
   ),
-})
+});
+
+Object.defineProperty(URL, 'createObjectURL', {
+  writable: true,
+  configurable: true,
+  value: vi.fn(() => 'blob:generated-audio'),
+});
+
+Object.defineProperty(URL, 'revokeObjectURL', {
+  writable: true,
+  configurable: true,
+  value: vi.fn(),
+});

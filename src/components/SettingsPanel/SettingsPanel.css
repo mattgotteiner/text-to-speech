@@ -1,0 +1,114 @@
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.settings-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-panel__eyebrow {
+  margin: 0 0 0.25rem;
+  color: #7c6cff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-panel h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.settings-panel__close,
+.settings-panel__primary,
+.settings-panel__secondary {
+  border: 1px solid #2b3160;
+  border-radius: 0.9rem;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.7rem 1rem;
+}
+
+.settings-panel__close,
+.settings-panel__secondary {
+  background: #161b33;
+  color: #dbe3ff;
+}
+
+.settings-panel__primary {
+  background: linear-gradient(135deg, #7c6cff, #4cc9f0);
+  color: #081120;
+  font-weight: 700;
+}
+
+.settings-panel__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.settings-panel__group--split {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.settings-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+}
+
+.settings-panel__field span {
+  font-weight: 600;
+}
+
+.settings-panel__field input,
+.settings-panel__field select,
+.settings-panel__field textarea {
+  background: #0b1324;
+  border: 1px solid #2b3160;
+  border-radius: 0.9rem;
+  color: #f5f7ff;
+  font: inherit;
+  padding: 0.8rem 0.9rem;
+}
+
+.settings-panel__field input::placeholder,
+.settings-panel__field textarea::placeholder {
+  color: #8f99bf;
+}
+
+.settings-panel__hint {
+  background: #11182d;
+  border: 1px solid #2b3160;
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+}
+
+.settings-panel__hint-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.settings-panel__hint p {
+  color: #bac4e4;
+  margin: 0;
+}
+
+.settings-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: auto;
+}

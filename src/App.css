@@ -1,52 +1,103 @@
-.app {
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .logo.react {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.date {
-  color: #888;
-  font-size: 0.9em;
-  margin-top: -0.5em;
-}
-
-.count {
-  font-size: 1.5em;
-  font-weight: 600;
-  margin-bottom: 0.5em;
-}
-
-.button-group {
+.app-shell {
+  color: #f5f7ff;
   display: flex;
-  gap: 0.5em;
-  justify-content: center;
-  margin-bottom: 1em;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 100vh;
+}
+
+.app-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.app-eyebrow {
+  color: #7c6cff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.app-header h1 {
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 1;
+  margin: 0;
+}
+
+.app-subtitle {
+  color: #bac4e4;
+  margin: 0.75rem 0 0;
+  max-width: 720px;
+}
+
+.icon-button {
+  background: #161b33;
+  border: 1px solid #2b3160;
+  border-radius: 999px;
+  color: #dbe3ff;
+  font: inherit;
+  padding: 0.8rem 1rem;
+}
+
+.configuration-banner {
+  background: rgba(124, 108, 255, 0.16);
+  border: 1px solid rgba(124, 108, 255, 0.45);
+  border-radius: 1rem;
+  color: #eef0ff;
+  padding: 1rem 1.1rem;
+}
+
+.app-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.panel {
+  background: rgba(10, 16, 32, 0.88);
+  border: 1px solid #20274d;
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+  padding: 1.25rem;
+}
+
+.settings-drawer {
+  background: rgba(5, 10, 22, 0.85);
+  backdrop-filter: blur(14px);
+  border: 1px solid #20274d;
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  margin-left: auto;
+  max-width: 420px;
+  padding: 1.25rem;
+  position: sticky;
+  right: 0;
+  top: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 960px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-drawer {
+    max-width: none;
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    flex-direction: column;
+  }
+
+  .panel,
+  .settings-drawer {
+    padding: 1rem;
+  }
 }

@@ -1,0 +1,137 @@
+.tts-input {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tts-input__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.tts-input__eyebrow {
+  color: #7c6cff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+}
+
+.tts-input h2 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.tts-input__counter {
+  background: #11182d;
+  border: 1px solid #2b3160;
+  border-radius: 999px;
+  color: #dbe3ff;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  white-space: nowrap;
+}
+
+.tts-input__counter[data-over-limit='true'] {
+  border-color: #ff7f96;
+  color: #ffb5c2;
+}
+
+.tts-input__helper {
+  color: #bac4e4;
+  margin: 0;
+}
+
+.tts-input__label {
+  font-weight: 600;
+}
+
+.tts-input__textarea {
+  background: #0b1324;
+  border: 1px solid #2b3160;
+  border-radius: 1rem;
+  color: #f5f7ff;
+  font: inherit;
+  min-height: 240px;
+  padding: 1rem;
+  resize: vertical;
+}
+
+.tts-input__textarea::placeholder {
+  color: #8f99bf;
+}
+
+.tts-input__attachment-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.tts-input__file-input {
+  display: none;
+}
+
+.tts-input__button {
+  border-radius: 0.9rem;
+  border: 1px solid #2b3160;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.85rem 1.1rem;
+}
+
+.tts-input__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tts-input__button--primary {
+  background: linear-gradient(135deg, #7c6cff, #4cc9f0);
+  color: #081120;
+  font-weight: 700;
+}
+
+.tts-input__button--secondary,
+.tts-input__button--ghost {
+  background: #161b33;
+  color: #dbe3ff;
+}
+
+.tts-input__attachment-chip,
+.tts-input__notice,
+.tts-input__error {
+  align-items: center;
+  background: #11182d;
+  border: 1px solid #2b3160;
+  border-radius: 0.9rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+}
+
+.tts-input__attachment-chip div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.tts-input__attachment-chip span {
+  color: #99a5cc;
+  font-size: 0.9rem;
+}
+
+.tts-input__attachment-chip button {
+  background: transparent;
+  border: 0;
+  color: #f5f7ff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.tts-input__error {
+  border-color: #ff7f96;
+  color: #ffccd6;
+}
