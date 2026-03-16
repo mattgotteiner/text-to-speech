@@ -78,15 +78,58 @@ export function buildSpeechRequest(
   return request;
 }
 
+function logTtsEvent(message: string, details?: Record<string, unknown>): void {
+  if (details) {
+    console.info(`[text-audio] ${message}`, details);
+    return;
+  }
+
+  console.info(`[text-audio] ${message}`);
+}
+
 export async function synthesizeSpeech(
   settings: AppSettings,
   input: string,
 ): Promise<SynthesizedSpeechResponse> {
+  const normalizedEndpoint = normalizeAzureEndpoint(settings.endpoint);
+  const request = buildSpeechRequest(settings, input);
+  const startedAt = performance.now();
+
+  logTtsEvent('Creating Azure OpenAI client', {
+    deployment: settings.deployment.trim(),
+    endpoint: normalizedEndpoint,
+    format: settings.format,
+    hasInstructions: settings.instructions.trim().length > 0,
+    inputLength: input.length,
+    speed: settings.speed,
+    voice: settings.voice,
+  });
+
   const client = createAzureClient(settings);
-  const response = await client.audio.speech.create(buildSpeechRequest(settings, input));
+  logTtsEvent('Sending speech request');
+  const response = await client.audio.speech.create(request);
+  logTtsEvent('Speech response received', {
+    elapsedMs: Math.round(performance.now() - startedAt),
+  });
+
+  logTtsEvent('Reading response blob');
   const blob = await response.blob();
+  logTtsEvent('Blob read complete', {
+    blobSize: blob.size,
+    blobType: blob.type || '(empty)',
+    elapsedMs: Math.round(performance.now() - startedAt),
+  });
+
   const normalizedBlob =
-    blob.type.length > 0 ? blob : new Blob([await blob.arrayBuffer()], { type: getAudioMimeType(settings.format) });
+    blob.type.length > 0
+      ? blob
+      : new Blob([await blob.arrayBuffer()], { type: getAudioMimeType(settings.format) });
+
+  logTtsEvent('Speech synthesis completed', {
+    elapsedMs: Math.round(performance.now() - startedAt),
+    normalizedBlobSize: normalizedBlob.size,
+    normalizedBlobType: normalizedBlob.type,
+  });
 
   return {
     blob: normalizedBlob,

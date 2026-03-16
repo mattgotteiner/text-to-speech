@@ -32,7 +32,26 @@ describe('App', () => {
     expect(screen.getByText('Text Audio')).toBeInTheDocument();
     expect(screen.getAllByText('Configure your Azure OpenAI settings to get started.')).toHaveLength(2);
     expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
+    expect(screen.getByLabelText('Close settings')).toBeInTheDocument();
     expect(screen.getByLabelText('Message input')).toBeInTheDocument();
+  });
+
+  it('collapses and reopens the settings sidebar', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(screen.getByPlaceholderText('https://your-resource.openai.azure.com')).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText('Close settings'));
+
+    expect(
+      screen.queryByPlaceholderText('https://your-resource.openai.azure.com'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText('Open settings'));
+
+    expect(screen.getByPlaceholderText('https://your-resource.openai.azure.com')).toBeInTheDocument();
   });
 
   it('generates audio from freeform text', async () => {

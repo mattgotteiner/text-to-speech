@@ -10,7 +10,6 @@ interface SettingsPanelProps {
   defaultDeployment: string;
   onUpdate: (updates: Partial<AppSettings>) => void;
   onReset: () => void;
-  onClose: () => void;
 }
 
 export function SettingsPanel({
@@ -18,61 +17,65 @@ export function SettingsPanel({
   defaultDeployment,
   onUpdate,
   onReset,
-  onClose,
 }: SettingsPanelProps): React.ReactElement {
   return (
     <div className="settings-panel">
-      <div className="settings-panel__header">
-        <div>
-          <p className="settings-panel__eyebrow">Configuration</p>
-          <h2>Azure OpenAI settings</h2>
-        </div>
-        <button
-          className="settings-panel__close"
-          type="button"
-          aria-label="Close settings"
-          onClick={onClose}
-        >
-          Close
-        </button>
-      </div>
+      <section className="settings-section">
+        <h3 className="settings-section__title">Required</h3>
 
-      <div className="settings-panel__group">
-        <label className="settings-panel__field">
-          <span>Endpoint</span>
+        <div className="settings-field">
+          <label className="settings-field__label" htmlFor="settings-endpoint">
+            Endpoint URL
+          </label>
           <input
+            id="settings-endpoint"
+            className="settings-field__input"
             type="url"
             placeholder="https://your-resource.openai.azure.com"
             value={settings.endpoint}
             onChange={(event) => onUpdate({ endpoint: event.target.value })}
           />
-        </label>
+        </div>
 
-        <label className="settings-panel__field">
-          <span>Deployment name</span>
+        <div className="settings-field">
+          <label className="settings-field__label" htmlFor="settings-deployment">
+            Deployment name
+          </label>
           <input
+            id="settings-deployment"
+            className="settings-field__input"
             type="text"
             placeholder={defaultDeployment}
             value={settings.deployment}
             onChange={(event) => onUpdate({ deployment: event.target.value })}
           />
-        </label>
+        </div>
 
-        <label className="settings-panel__field">
-          <span>API key</span>
+        <div className="settings-field">
+          <label className="settings-field__label" htmlFor="settings-api-key">
+            API key
+          </label>
           <input
+            id="settings-api-key"
+            className="settings-field__input"
             type="password"
             placeholder="Paste your Azure OpenAI key"
             value={settings.apiKey}
             onChange={(event) => onUpdate({ apiKey: event.target.value })}
           />
-        </label>
-      </div>
+        </div>
+      </section>
 
-      <div className="settings-panel__group settings-panel__group--split">
-        <label className="settings-panel__field">
-          <span>Voice</span>
+      <section className="settings-section">
+        <h3 className="settings-section__title">Audio</h3>
+
+        <div className="settings-field">
+          <label className="settings-field__label" htmlFor="settings-voice">
+            Voice
+          </label>
           <select
+            id="settings-voice"
+            className="settings-field__select"
             value={settings.voice}
             onChange={(event) => onUpdate({ voice: event.target.value as AppSettings['voice'] })}
           >
@@ -80,13 +83,17 @@ export function SettingsPanel({
               <option key={voice} value={voice}>
                 {voice}
               </option>
-            ))}
+              ))}
           </select>
-        </label>
+        </div>
 
-        <label className="settings-panel__field">
-          <span>Output format</span>
+        <div className="settings-field">
+          <label className="settings-field__label" htmlFor="settings-format">
+            Output format
+          </label>
           <select
+            id="settings-format"
+            className="settings-field__select"
             value={settings.format}
             onChange={(event) =>
               onUpdate({ format: event.target.value as AppSettings['format'] })
@@ -96,15 +103,17 @@ export function SettingsPanel({
               <option key={format} value={format}>
                 {format}
               </option>
-            ))}
+              ))}
           </select>
-        </label>
-      </div>
+        </div>
 
-      <div className="settings-panel__group settings-panel__group--split">
-        <label className="settings-panel__field">
-          <span>Speed</span>
+        <div className="settings-field">
+          <label className="settings-field__label" htmlFor="settings-speed">
+            Speed
+          </label>
           <input
+            id="settings-speed"
+            className="settings-field__input"
             type="number"
             min="0.25"
             max="4"
@@ -112,35 +121,37 @@ export function SettingsPanel({
             value={settings.speed}
             onChange={(event) => onUpdate({ speed: Number(event.target.value) })}
           />
-        </label>
-
-        <div className="settings-panel__hint">
-          <span className="settings-panel__hint-label">Security note</span>
-          <p>
-            This browser-direct scaffold stores your key locally for dev/test use,
-            similar to `responses-chat`.
-          </p>
+          <span className="settings-field__hint">Accepted range: 0.25 to 4.0.</span>
         </div>
-      </div>
+      </section>
 
-      <label className="settings-panel__field">
-        <span>Voice instructions</span>
-        <textarea
-          rows={4}
-          placeholder="Optional guidance for the voice style."
-          value={settings.instructions}
-          onChange={(event) => onUpdate({ instructions: event.target.value })}
-        />
-      </label>
+      <section className="settings-section">
+        <h3 className="settings-section__title">Instructions</h3>
+        <span className="settings-section__notice">
+          This browser-direct scaffold stores your key locally for dev/test use, similar to
+          `responses-chat`.
+        </span>
+        <div className="settings-field">
+          <label className="settings-field__label" htmlFor="settings-instructions">
+            Voice instructions
+          </label>
+          <textarea
+            id="settings-instructions"
+            className="settings-field__textarea"
+            rows={4}
+            placeholder="Optional guidance for the voice style."
+            value={settings.instructions}
+            onChange={(event) => onUpdate({ instructions: event.target.value })}
+          />
+        </div>
+      </section>
 
-      <div className="settings-panel__actions">
-        <button className="settings-panel__secondary" type="button" onClick={onReset}>
+      <section className="settings-section settings-section--clear">
+        <h3 className="settings-section__title">Reset</h3>
+        <button className="settings-storage__clear-btn" type="button" onClick={onReset}>
           Reset defaults
         </button>
-        <button className="settings-panel__primary" type="button" onClick={onClose}>
-          Done
-        </button>
-      </div>
+      </section>
     </div>
   );
 }

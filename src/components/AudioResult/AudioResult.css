@@ -18,7 +18,7 @@
 }
 
 .audio-result__eyebrow {
-  color: #7c6cff;
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -28,22 +28,28 @@
 
 .audio-result h2,
 .audio-result h3 {
+  color: var(--color-text);
   margin: 0;
 }
 
 .audio-result p {
-  color: #bac4e4;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
 .audio-result__download {
-  background: #161b33;
-  border: 1px solid #2b3160;
-  border-radius: 0.9rem;
-  color: #f5f7ff;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
   cursor: pointer;
   font: inherit;
-  padding: 0.8rem 1rem;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+}
+
+.audio-result__download:hover {
+  border-color: var(--color-primary);
 }
 
 .audio-result__player {
@@ -58,32 +64,33 @@
 }
 
 .audio-result__meta div {
-  background: #11182d;
-  border: 1px solid #2b3160;
-  border-radius: 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 0.9rem;
 }
 
 .audio-result__meta dt {
-  color: #99a5cc;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
 }
 
 .audio-result__meta dd {
+  color: var(--color-text);
   font-size: 1rem;
   font-weight: 600;
   margin: 0.2rem 0 0;
 }
 
 .audio-result__excerpt {
-  background: #11182d;
-  border: 1px solid #2b3160;
-  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 1rem;
 }
 
 .audio-result__excerpt pre {
-  color: #e7ecff;
+  color: var(--color-text);
   font-family: inherit;
   margin: 0.75rem 0 0;
   overflow: auto;
@@ -92,9 +99,9 @@
 }
 
 .audio-result__error {
-  background: rgba(170, 35, 64, 0.22);
-  border: 1px solid #ff7f96;
-  border-radius: 0.9rem;
-  color: #ffccd6;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  color: var(--color-error-text);
   padding: 0.9rem 1rem;
 }

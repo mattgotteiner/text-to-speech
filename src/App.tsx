@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { AudioResult } from './components/AudioResult/AudioResult';
-import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
+import { SettingsButton } from './components/SettingsButton/SettingsButton';
+import { SettingsSidebar } from './components/SettingsSidebar/SettingsSidebar';
 import { TtsInput } from './components/TtsInput/TtsInput';
 import { SettingsProvider, useSettingsContext } from './context/SettingsContext';
 import {
-  DEFAULT_SETTINGS,
   MAX_TTS_INPUT_CHARS,
   type MarkdownAttachment,
   type SpeechResult,
@@ -82,8 +82,22 @@ function AppContent(): React.ReactElement {
 
   const handleGenerate = async (): Promise<void> => {
     if (isGenerateDisabled) {
+      console.info('[text-audio] Generate skipped because action is disabled', {
+        characterCount,
+        hasConfiguration: isConfigured,
+        isGenerating,
+        isOverCharacterLimit,
+      });
       return;
     }
+
+    const startedAt = performance.now();
+
+    console.info('[text-audio] Generate requested', {
+      attachmentName: attachment?.name ?? null,
+      inputLength: combinedInput.length,
+      voice: settings.voice,
+    });
 
     setIsGenerating(true);
     setGenerationError(null);
@@ -91,6 +105,13 @@ function AppContent(): React.ReactElement {
     try {
       const response = await synthesizeSpeech(settings, combinedInput);
       const audioUrl = URL.createObjectURL(response.blob);
+
+      console.info('[text-audio] Audio URL created', {
+        audioUrl,
+        blobSize: response.blob.size,
+        elapsedMs: Math.round(performance.now() - startedAt),
+        fileName: response.fileName,
+      });
 
       setResult({
         audioBlob: response.blob,
@@ -101,10 +122,18 @@ function AppContent(): React.ReactElement {
         input: combinedInput,
         voice: settings.voice,
       });
+
+      console.info('[text-audio] Generate completed successfully', {
+        elapsedMs: Math.round(performance.now() - startedAt),
+      });
     } catch (error) {
+      console.error('[text-audio] Generate failed', error);
       setGenerationError(toErrorMessage(error));
     } finally {
       setIsGenerating(false);
+      console.info('[text-audio] Generate finished', {
+        elapsedMs: Math.round(performance.now() - startedAt),
+      });
     }
   };
 
@@ -129,72 +158,82 @@ function AppContent(): React.ReactElement {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
-          <p className="app-eyebrow">Azure OpenAI Text to Speech</p>
-          <h1>Text Audio</h1>
-          <p className="app-subtitle">
-            Generate audio from freeform text or a local Markdown file using your
-            Azure OpenAI `gpt-4o-mini-tts` deployment.
-          </p>
+        <div className="app-header__title-area">
+          <div>
+            <p className="app-eyebrow">Azure OpenAI Text to Speech</p>
+            <h1>Text Audio</h1>
+            <p className="app-subtitle">
+              Generate audio from freeform text or a local Markdown file using your
+              Azure OpenAI `gpt-4o-mini-tts` deployment.
+            </p>
+          </div>
         </div>
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="Open settings"
-          onClick={() => setIsSettingsOpen((current) => !current)}
-        >
-          {isSettingsOpen ? 'Hide settings' : 'Open settings'}
-        </button>
+        <div className="app-header__actions">
+          <SettingsButton
+            isConfigured={isConfigured}
+            onClick={() => setIsSettingsOpen(true)}
+          />
+        </div>
       </header>
 
-      {!isConfigured && (
-        <div className="configuration-banner" role="alert">
-          Configure your Azure OpenAI settings to get started.
-        </div>
-      )}
+      <div className="app-body">
+        {!isConfigured && (
+          <div className="configuration-banner" role="alert">
+            <span className="configuration-banner__icon" aria-hidden="true">
+              !
+            </span>
+            <span className="configuration-banner__text">
+              Configure your Azure OpenAI settings to get started.
+            </span>
+            <button
+              className="configuration-banner__button"
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              Open settings
+            </button>
+          </div>
+        )}
 
-      <main className="app-layout">
-        <section className="panel panel--input">
-          <TtsInput
-            attachment={attachment}
-            characterCount={characterCount}
-            composerError={composerError}
-            composerMessage={composerMessage}
-            inputText={freeText}
-            isConfigured={isConfigured}
-            isGenerating={isGenerating}
-            isOverCharacterLimit={isOverCharacterLimit}
-            maxCharacters={MAX_TTS_INPUT_CHARS}
-            onAttachFile={handleAttachFile}
-            onClear={handleClearInput}
-            onGenerate={handleGenerate}
-            onInputChange={setFreeText}
-            onRemoveAttachment={handleRemoveAttachment}
-          />
-        </section>
+        <main className="app-layout">
+          <section className="panel panel--input">
+            <TtsInput
+              attachment={attachment}
+              characterCount={characterCount}
+              composerError={composerError}
+              composerMessage={composerMessage}
+              inputText={freeText}
+              isConfigured={isConfigured}
+              isGenerating={isGenerating}
+              isOverCharacterLimit={isOverCharacterLimit}
+              maxCharacters={MAX_TTS_INPUT_CHARS}
+              onAttachFile={handleAttachFile}
+              onClear={handleClearInput}
+              onGenerate={handleGenerate}
+              onInputChange={setFreeText}
+              onRemoveAttachment={handleRemoveAttachment}
+            />
+          </section>
 
-        <section className="panel panel--result">
-          <AudioResult
-            error={generationError}
-            hasConfiguration={isConfigured}
-            isGenerating={isGenerating}
-            onDownload={handleDownload}
-            result={result}
-          />
-        </section>
-      </main>
+          <section className="panel panel--result">
+            <AudioResult
+              error={generationError}
+              hasConfiguration={isConfigured}
+              isGenerating={isGenerating}
+              onDownload={handleDownload}
+              result={result}
+            />
+          </section>
+        </main>
+      </div>
 
-      {isSettingsOpen && (
-        <aside className="settings-drawer">
-          <SettingsPanel
-            defaultDeployment={DEFAULT_SETTINGS.deployment}
-            onClose={() => setIsSettingsOpen(false)}
-            onReset={handleResetSettings}
-            onUpdate={updateSettings}
-            settings={settings}
-          />
-        </aside>
-      )}
+      <SettingsSidebar
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onReset={handleResetSettings}
+        onUpdate={updateSettings}
+        settings={settings}
+      />
     </div>
   );
 }
