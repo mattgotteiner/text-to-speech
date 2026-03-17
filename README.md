@@ -46,6 +46,7 @@ Then open the local Vite URL, open settings, and enter:
 |---------|-------------|
 | `npm run dev` | Start the Vite dev server |
 | `npm run build` | Type-check and build the app |
+| `npm run generate-icons` | Regenerate favicon and PWA icon assets |
 | `npm run lint` | Run ESLint |
 | `npm run test:run` | Run Vitest once |
 | `npm run typecheck` | Run TypeScript without emitting |
