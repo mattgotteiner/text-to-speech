@@ -1,24 +1,77 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
   APP_SETTINGS_STORAGE_KEY,
+  AUDIO_FORMATS,
   DEFAULT_SETTINGS,
+  type AudioFormat,
   type AppSettings,
 } from '../types';
 import { getStoredValue, setStoredValue } from '../utils/localStorage';
 
+const MIN_SPEECH_SPEED = 0.5;
+const MAX_SPEECH_SPEED = 2;
+
 function clampSpeed(speed: number): number {
-  return Math.min(4, Math.max(0.25, speed));
+  if (Number.isNaN(speed)) {
+    return DEFAULT_SETTINGS.speed;
+  }
+
+  return Math.min(MAX_SPEECH_SPEED, Math.max(MIN_SPEECH_SPEED, speed));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isLegacyOpenAiSettings(settings: Record<string, unknown>): boolean {
+  const endpoint = typeof settings.endpoint === 'string' ? settings.endpoint : '';
+
+  return (
+    'deployment' in settings ||
+    'instructions' in settings ||
+    endpoint.includes('.openai.azure.com') ||
+    endpoint.includes('/openai')
+  );
+}
+
+function isAudioFormat(value: unknown): value is AudioFormat {
+  return typeof value === 'string' && AUDIO_FORMATS.includes(value as AudioFormat);
 }
 
 function normalizeSettings(settings: AppSettings): AppSettings {
   return {
     ...settings,
     apiKey: settings.apiKey.trim(),
-    deployment: settings.deployment.trim(),
     endpoint: settings.endpoint.trim(),
-    instructions: settings.instructions.trim(),
     speed: clampSpeed(settings.speed),
+    voice: settings.voice.trim() || DEFAULT_SETTINGS.voice,
+    format: isAudioFormat(settings.format) ? settings.format : DEFAULT_SETTINGS.format,
   };
+}
+
+function hydrateSettings(value: unknown): AppSettings {
+  if (!isRecord(value) || isLegacyOpenAiSettings(value)) {
+    return DEFAULT_SETTINGS;
+  }
+
+  const endpoint = typeof value.endpoint === 'string' ? value.endpoint : DEFAULT_SETTINGS.endpoint;
+  const apiKey = typeof value.apiKey === 'string' ? value.apiKey : DEFAULT_SETTINGS.apiKey;
+  const voice = typeof value.voice === 'string' ? value.voice : DEFAULT_SETTINGS.voice;
+  const format = isAudioFormat(value.format) ? value.format : DEFAULT_SETTINGS.format;
+  const speed =
+    typeof value.speed === 'number'
+      ? value.speed
+      : typeof value.speed === 'string'
+        ? Number(value.speed)
+        : DEFAULT_SETTINGS.speed;
+
+  return normalizeSettings({
+    apiKey,
+    endpoint,
+    format,
+    speed,
+    voice,
+  });
 }
 
 export interface UseSettingsReturn {
@@ -29,9 +82,11 @@ export interface UseSettingsReturn {
 }
 
 export function useSettings(): UseSettingsReturn {
-  const [settings, setSettings] = useState<AppSettings>(() =>
-    normalizeSettings(getStoredValue(APP_SETTINGS_STORAGE_KEY, DEFAULT_SETTINGS)),
-  );
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const normalizedSettings = hydrateSettings(getStoredValue<unknown>(APP_SETTINGS_STORAGE_KEY, null));
+    setStoredValue(APP_SETTINGS_STORAGE_KEY, normalizedSettings);
+    return normalizedSettings;
+  });
 
   const updateSettings = useCallback((updates: Partial<AppSettings>): void => {
     setSettings((currentSettings) => {
@@ -54,9 +109,8 @@ export function useSettings(): UseSettingsReturn {
   const isConfigured = useMemo(
     () =>
       settings.endpoint.length > 0 &&
-      settings.apiKey.length > 0 &&
-      settings.deployment.length > 0,
-    [settings.apiKey.length, settings.deployment.length, settings.endpoint.length],
+      settings.apiKey.length > 0,
+    [settings.apiKey.length, settings.endpoint.length],
   );
 
   return {

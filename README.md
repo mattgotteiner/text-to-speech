@@ -1,12 +1,12 @@
-# Text Audio
+# Azure Text To Speech
 
-A Vite + React + TypeScript SPA for experimenting locally with Azure OpenAI text-to-speech using a browser-direct `gpt-4o-mini-tts` workflow.
+A Vite + React + TypeScript SPA for experimenting locally with Azure Speech text-to-speech using a browser-direct Speech SDK workflow.
 
 ## What it does
 
 - Accepts freeform text input
 - Accepts a local Markdown (`.md`) file and merges its contents into the synthesis input
-- Lets you configure Azure OpenAI endpoint, deployment, API key, voice, format, speed, and optional voice instructions
+- Lets you configure an Azure Speech endpoint, API key, a common-voices preset dropdown with custom voice entry, output format, and playback speed
 - Plays generated audio directly in the browser with native seek/play controls
 - Provides a download action for the generated clip
 
@@ -16,7 +16,7 @@ This scaffold intentionally mirrors the browser-direct setup used by `responses-
 
 That means:
 
-- your Azure OpenAI API key is entered in the browser
+- your Azure Speech API key is entered in the browser
 - settings are persisted in localStorage on your machine
 - this is not the right security posture for a hardened production deployment
 
@@ -25,8 +25,8 @@ If you need stronger secret handling, place the Azure request behind a trusted p
 ## Prerequisites
 
 - Node.js 22+
-- An Azure OpenAI resource with a deployed `gpt-4o-mini-tts` model
-- Azure endpoint, deployment name, and API key
+- An Azure Speech resource
+- Azure Speech endpoint and API key
 
 ## Getting started
 
@@ -37,8 +37,7 @@ npm run dev
 
 Then open the local Vite URL, open settings, and enter:
 
-- your Azure OpenAI endpoint
-- your deployment name
+- your Azure Speech endpoint
 - your API key
 
 ## Available scripts
@@ -61,6 +60,6 @@ Then open the local Vite URL, open settings, and enter:
 
 ## Notes
 
-- Azure OpenAI TTS input is currently capped at 4096 characters, so the app shows a live combined character count
-- This app uses the `openai` JavaScript SDK with `AzureOpenAI` and `dangerouslyAllowBrowser: true`
-- The default API version is `2025-04-01-preview`, based on the current Azure TTS quickstart
+- The app validates against Azure Speech's documented 64 KB real-time SSML request limit, so the composer shows both raw character count and encoded payload size
+- This app uses the `microsoft-cognitiveservices-speech-sdk` package directly in the browser and converts the returned `audioData` into a downloadable `Blob`
+- If you previously used the Azure OpenAI flow, reset settings once so the app clears the old localStorage schema

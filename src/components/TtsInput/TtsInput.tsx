@@ -8,7 +8,8 @@ interface TtsInputProps {
   composerMessage: string | null;
   composerError: string | null;
   characterCount: number;
-  maxCharacters: number;
+  requestSizeBytes: number;
+  maxRequestBytes: number;
   isConfigured: boolean;
   isGenerating: boolean;
   isOverCharacterLimit: boolean;
@@ -25,7 +26,8 @@ export function TtsInput({
   composerMessage,
   composerError,
   characterCount,
-  maxCharacters,
+  requestSizeBytes,
+  maxRequestBytes,
   isConfigured,
   isGenerating,
   isOverCharacterLimit,
@@ -55,12 +57,14 @@ export function TtsInput({
           <h2>Text and Markdown input</h2>
         </div>
         <div className="tts-input__counter" data-over-limit={isOverCharacterLimit}>
-          {characterCount} / {maxCharacters}
+          {characterCount.toLocaleString()} chars • {requestSizeBytes.toLocaleString()} /{' '}
+          {maxRequestBytes.toLocaleString()} bytes
         </div>
       </div>
 
       <p className="tts-input__helper">
         Paste freeform text, attach a local `.md` file, or combine both before generating speech.
+        Azure Speech enforces the final SSML payload size, not just raw character count.
       </p>
 
       <label className="tts-input__label" htmlFor="tts-input-textarea">
@@ -129,13 +133,14 @@ export function TtsInput({
 
       {!isConfigured && (
         <div className="tts-input__notice">
-          Add your endpoint, deployment, and API key in settings before generating audio.
+          Add your Azure Speech endpoint and API key in settings before generating audio.
         </div>
       )}
 
       {isOverCharacterLimit && (
         <div className="tts-input__error" role="alert">
-          Azure OpenAI TTS input currently supports up to {maxCharacters} characters.
+          Azure Speech real-time TTS caps each SSML request at {maxRequestBytes.toLocaleString()}{' '}
+          bytes. Shorten the input until the payload fits.
         </div>
       )}
 

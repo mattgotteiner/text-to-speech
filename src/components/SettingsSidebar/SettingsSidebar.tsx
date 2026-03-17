@@ -1,5 +1,5 @@
 import { SettingsPanel } from '../SettingsPanel/SettingsPanel';
-import { DEFAULT_SETTINGS, type AppSettings } from '../../types';
+import type { AppSettings } from '../../types';
 import './SettingsSidebar.css';
 
 interface SettingsSidebarProps {
@@ -44,7 +44,6 @@ export function SettingsSidebar({
 
         <div className="settings-sidebar__content">
           <SettingsPanel
-            defaultDeployment={DEFAULT_SETTINGS.deployment}
             onReset={onReset}
             onUpdate={onUpdate}
             settings={settings}

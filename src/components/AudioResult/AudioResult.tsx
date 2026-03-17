@@ -21,7 +21,7 @@ export function AudioResult({
       <div className="audio-result audio-result--empty">
         <p className="audio-result__eyebrow">Output</p>
         <h2>Ready when you are</h2>
-        <p>Configure your Azure OpenAI settings to get started.</p>
+        <p>Configure your Azure Speech settings to get started.</p>
       </div>
     );
   }

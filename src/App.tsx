@@ -6,11 +6,15 @@ import { SettingsSidebar } from './components/SettingsSidebar/SettingsSidebar';
 import { TtsInput } from './components/TtsInput/TtsInput';
 import { SettingsProvider, useSettingsContext } from './context/SettingsContext';
 import {
-  MAX_TTS_INPUT_CHARS,
+  MAX_TTS_SSML_BYTES,
   type MarkdownAttachment,
   type SpeechResult,
 } from './types';
-import { synthesizeSpeech, toErrorMessage } from './utils/api';
+import {
+  getSpeechRequestSizeBytes,
+  synthesizeSpeech,
+  toErrorMessage,
+} from './utils/api';
 import { buildSpeechInput, readMarkdownFile } from './utils/markdown';
 
 function AppContent(): React.ReactElement {
@@ -43,7 +47,11 @@ function AppContent(): React.ReactElement {
     [attachment, freeText],
   );
   const characterCount = combinedInput.length;
-  const isOverCharacterLimit = characterCount > MAX_TTS_INPUT_CHARS;
+  const requestSizeBytes = useMemo(
+    () => getSpeechRequestSizeBytes(settings, combinedInput),
+    [combinedInput, settings],
+  );
+  const isOverCharacterLimit = requestSizeBytes > MAX_TTS_SSML_BYTES;
   const isGenerateDisabled =
     isGenerating ||
     !isConfigured ||
@@ -160,11 +168,11 @@ function AppContent(): React.ReactElement {
       <header className="app-header">
         <div className="app-header__title-area">
           <div>
-            <p className="app-eyebrow">Azure OpenAI Text to Speech</p>
-            <h1>Text Audio</h1>
+            <p className="app-eyebrow">Browser-direct Azure Speech</p>
+            <h1>Azure Text To Speech</h1>
             <p className="app-subtitle">
               Generate audio from freeform text or a local Markdown file using your
-              Azure OpenAI `gpt-4o-mini-tts` deployment.
+              Azure Speech resource.
             </p>
           </div>
         </div>
@@ -183,7 +191,7 @@ function AppContent(): React.ReactElement {
               !
             </span>
             <span className="configuration-banner__text">
-              Configure your Azure OpenAI settings to get started.
+              Configure your Azure Speech settings to get started.
             </span>
             <button
               className="configuration-banner__button"
@@ -206,12 +214,13 @@ function AppContent(): React.ReactElement {
               isConfigured={isConfigured}
               isGenerating={isGenerating}
               isOverCharacterLimit={isOverCharacterLimit}
-              maxCharacters={MAX_TTS_INPUT_CHARS}
+              maxRequestBytes={MAX_TTS_SSML_BYTES}
               onAttachFile={handleAttachFile}
               onClear={handleClearInput}
               onGenerate={handleGenerate}
               onInputChange={setFreeText}
               onRemoveAttachment={handleRemoveAttachment}
+              requestSizeBytes={requestSizeBytes}
             />
           </section>
 
