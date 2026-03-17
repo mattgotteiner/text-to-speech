@@ -19,7 +19,7 @@ import { buildSpeechInput, readMarkdownFile } from './utils/markdown';
 
 function AppContent(): React.ReactElement {
   const { settings, updateSettings, resetSettings, isConfigured } = useSettingsContext();
-  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(() => !isConfigured);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [freeText, setFreeText] = useState<string>('');
   const [attachment, setAttachment] = useState<MarkdownAttachment | null>(null);
   const [composerMessage, setComposerMessage] = useState<string | null>(null);
@@ -27,12 +27,6 @@ function AppContent(): React.ReactElement {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [result, setResult] = useState<SpeechResult | null>(null);
-
-  useEffect(() => {
-    if (!isConfigured) {
-      setIsSettingsOpen(true);
-    }
-  }, [isConfigured]);
 
   useEffect(() => {
     const root = document.documentElement;

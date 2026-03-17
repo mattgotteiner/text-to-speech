@@ -18,6 +18,10 @@ vi.mock('./utils/api', async () => {
 
 const synthesizeSpeechMock = vi.mocked(synthesizeSpeech);
 
+async function openSettings(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+  await user.click(screen.getByLabelText('Open settings'));
+}
+
 describe('App', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -33,6 +37,8 @@ describe('App', () => {
   it('renders theme controls in settings and applies the selected root class', async () => {
     const user = userEvent.setup();
     render(<App />);
+
+    await openSettings(user);
 
     expect(screen.getByText('Appearance')).toBeInTheDocument();
     expect(screen.getByLabelText('Light')).toBeInTheDocument();
@@ -76,13 +82,18 @@ describe('App', () => {
     expect(screen.getByText('Azure Text To Speech')).toBeInTheDocument();
     expect(screen.getAllByText('Configure your Azure Speech settings to get started.')).toHaveLength(2);
     expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
-    expect(screen.getByLabelText('Close settings')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Close settings')).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
+    ).not.toBeInTheDocument();
     expect(screen.getByLabelText('Message input')).toBeInTheDocument();
   });
 
   it('offers grouped voice presets and keeps a custom voice field', async () => {
     const user = userEvent.setup();
     render(<App />);
+
+    await openSettings(user);
 
     const voicePreset = screen.getByLabelText('Voice preset');
     const voiceName = screen.getByLabelText('Voice name');
@@ -106,6 +117,12 @@ describe('App', () => {
     render(<App />);
 
     expect(
+      screen.queryByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
+    ).not.toBeInTheDocument();
+
+    await openSettings(user);
+
+    expect(
       screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
     ).toBeInTheDocument();
 
@@ -115,17 +132,13 @@ describe('App', () => {
       screen.queryByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
-
-    await user.click(screen.getByLabelText('Open settings'));
-
-    expect(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-    ).toBeInTheDocument();
   });
 
   it('generates audio from freeform text', async () => {
     const user = userEvent.setup();
     render(<App />);
+
+    await openSettings(user);
 
     await user.type(
       screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
@@ -157,6 +170,8 @@ describe('App', () => {
   it('reads attached markdown files and includes the contents in the request', async () => {
     const user = userEvent.setup();
     render(<App />);
+
+    await openSettings(user);
 
     await user.type(
       screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
@@ -193,6 +208,8 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSettings(user);
+
     await user.type(
       screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
       'https://example.cognitiveservices.azure.com',
@@ -216,6 +233,8 @@ describe('App', () => {
   it('uses a selected preset voice when generating audio', async () => {
     const user = userEvent.setup();
     render(<App />);
+
+    await openSettings(user);
 
     await user.selectOptions(screen.getByLabelText('Voice preset'), 'en-GB-AdaMultilingualNeural');
     await user.type(
