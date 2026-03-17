@@ -5,6 +5,8 @@ import {
   DEFAULT_SETTINGS,
   type AudioFormat,
   type AppSettings,
+  type Theme,
+  THEME_OPTIONS,
 } from '../types';
 import { getStoredValue, setStoredValue } from '../utils/localStorage';
 
@@ -38,14 +40,19 @@ function isAudioFormat(value: unknown): value is AudioFormat {
   return typeof value === 'string' && AUDIO_FORMATS.includes(value as AudioFormat);
 }
 
+function isTheme(value: unknown): value is Theme {
+  return typeof value === 'string' && THEME_OPTIONS.includes(value as Theme);
+}
+
 function normalizeSettings(settings: AppSettings): AppSettings {
   return {
     ...settings,
     apiKey: settings.apiKey.trim(),
     endpoint: settings.endpoint.trim(),
-    speed: clampSpeed(settings.speed),
-    voice: settings.voice.trim() || DEFAULT_SETTINGS.voice,
     format: isAudioFormat(settings.format) ? settings.format : DEFAULT_SETTINGS.format,
+    speed: clampSpeed(settings.speed),
+    theme: isTheme(settings.theme) ? settings.theme : DEFAULT_SETTINGS.theme,
+    voice: settings.voice.trim() || DEFAULT_SETTINGS.voice,
   };
 }
 
@@ -58,6 +65,7 @@ function hydrateSettings(value: unknown): AppSettings {
   const apiKey = typeof value.apiKey === 'string' ? value.apiKey : DEFAULT_SETTINGS.apiKey;
   const voice = typeof value.voice === 'string' ? value.voice : DEFAULT_SETTINGS.voice;
   const format = isAudioFormat(value.format) ? value.format : DEFAULT_SETTINGS.format;
+  const theme = isTheme(value.theme) ? value.theme : DEFAULT_SETTINGS.theme;
   const speed =
     typeof value.speed === 'number'
       ? value.speed
@@ -70,6 +78,7 @@ function hydrateSettings(value: unknown): AppSettings {
     endpoint,
     format,
     speed,
+    theme,
     voice,
   });
 }

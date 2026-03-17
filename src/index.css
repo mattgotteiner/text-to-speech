@@ -58,6 +58,72 @@ button {
   color-scheme: light;
 }
 
+.theme-dark {
+  --color-bg: #15171b;
+  --color-surface: #1e2228;
+  --color-surface-elevated: #262b33;
+  --color-border: #353b45;
+  --color-border-muted: #404754;
+  --color-text: #edf1f7;
+  --color-text-secondary: #c4ccd8;
+  --color-text-muted: #a4adba;
+  --color-text-hint: #8993a4;
+  --color-primary: #4d9cff;
+  --color-primary-hover: #7db6ff;
+  --color-danger: #ff6b7c;
+  --color-danger-hover: #ff8c98;
+  --color-btn-surface: rgba(255, 255, 255, 0.1);
+  --color-btn-surface-hover: rgba(255, 255, 255, 0.16);
+  --color-focus-ring: rgba(77, 156, 255, 0.25);
+  --color-error-bg: #351920;
+  --color-error-border: #5a2733;
+  --color-error-text: #ffb4be;
+  --color-warning: #f4b247;
+  --color-warning-bg: #3b2a0d;
+  --color-warning-border: #70501f;
+  --color-warning-text: #ffd898;
+  --color-warning-btn-text: #231708;
+  --color-border-transparent: rgba(255, 255, 255, 0.12);
+
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not(.theme-dark) {
+    --color-bg: #15171b;
+    --color-surface: #1e2228;
+    --color-surface-elevated: #262b33;
+    --color-border: #353b45;
+    --color-border-muted: #404754;
+    --color-text: #edf1f7;
+    --color-text-secondary: #c4ccd8;
+    --color-text-muted: #a4adba;
+    --color-text-hint: #8993a4;
+    --color-primary: #4d9cff;
+    --color-primary-hover: #7db6ff;
+    --color-danger: #ff6b7c;
+    --color-danger-hover: #ff8c98;
+    --color-btn-surface: rgba(255, 255, 255, 0.1);
+    --color-btn-surface-hover: rgba(255, 255, 255, 0.16);
+    --color-focus-ring: rgba(77, 156, 255, 0.25);
+    --color-error-bg: #351920;
+    --color-error-border: #5a2733;
+    --color-error-text: #ffb4be;
+    --color-warning: #f4b247;
+    --color-warning-bg: #3b2a0d;
+    --color-warning-border: #70501f;
+    --color-warning-text: #ffd898;
+    --color-warning-btn-text: #231708;
+    --color-border-transparent: rgba(255, 255, 255, 0.12);
+
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    color-scheme: dark;
+  }
+}
+
 html,
 body {
   height: 100%;

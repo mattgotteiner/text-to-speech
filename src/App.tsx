@@ -35,6 +35,22 @@ function AppContent(): React.ReactElement {
   }, [isConfigured]);
 
   useEffect(() => {
+    const root = document.documentElement;
+
+    root.classList.remove('theme-light', 'theme-dark');
+
+    if (settings.theme === 'light') {
+      root.classList.add('theme-light');
+    } else if (settings.theme === 'dark') {
+      root.classList.add('theme-dark');
+    }
+
+    return () => {
+      root.classList.remove('theme-light', 'theme-dark');
+    };
+  }, [settings.theme]);
+
+  useEffect(() => {
     return () => {
       if (result) {
         URL.revokeObjectURL(result.audioUrl);
