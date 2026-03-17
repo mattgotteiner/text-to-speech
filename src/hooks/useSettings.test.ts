@@ -44,7 +44,38 @@ describe('useSettings', () => {
     expect(result.current.settings.apiKey).toBe('speech-key');
     expect(result.current.settings.endpoint).toBe('https://example.cognitiveservices.azure.com/');
     expect(result.current.settings.speed).toBe(2);
+    expect(result.current.settings.theme).toBe('system');
     expect(result.current.settings.voice).toBe('en-US-JennyNeural');
     expect(result.current.isConfigured).toBe(true);
+  });
+
+  it('defaults missing stored theme values to system', () => {
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        apiKey: 'speech-key',
+        endpoint: 'https://example.cognitiveservices.azure.com/',
+        format: 'mp3',
+        speed: 1,
+        voice: 'en-US-AvaMultilingualNeural',
+      }),
+    );
+
+    const { result } = renderHook(() => useSettings());
+
+    expect(result.current.settings.theme).toBe('system');
+    expect(localStorage.getItem(APP_SETTINGS_STORAGE_KEY)).toBe(
+      JSON.stringify({ ...DEFAULT_SETTINGS, apiKey: 'speech-key', endpoint: 'https://example.cognitiveservices.azure.com/' }),
+    );
+  });
+
+  it('normalizes invalid theme updates back to the default theme', () => {
+    const { result } = renderHook(() => useSettings());
+
+    act(() => {
+      result.current.updateSettings({ theme: 'midnight' as never });
+    });
+
+    expect(result.current.settings.theme).toBe(DEFAULT_SETTINGS.theme);
   });
 });

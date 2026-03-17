@@ -85,6 +85,38 @@
   margin-top: 4px;
 }
 
+.settings-field__radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-field__radio-wrapper {
+  align-items: center;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.settings-field__radio-wrapper:has(.settings-field__radio:checked) {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-primary);
+}
+
+.settings-field__radio {
+  accent-color: var(--color-primary);
+  margin: 0;
+}
+
+.settings-field__radio-label {
+  color: var(--color-text);
+  font-size: 14px;
+}
+
 .settings-storage__clear-btn {
   background-color: transparent;
   border: 1px solid var(--color-danger);

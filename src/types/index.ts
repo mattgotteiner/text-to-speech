@@ -2,6 +2,7 @@ export const APP_SETTINGS_STORAGE_KEY = 'text-audio-settings';
 export const MAX_TTS_SSML_BYTES = 64 * 1024;
 export const MAX_MARKDOWN_FILE_BYTES = 1024 * 1024;
 export const AUDIO_FORMATS = ['mp3', 'wav', 'opus'] as const;
+export const THEME_OPTIONS = ['light', 'dark', 'system'] as const;
 
 export interface VoicePresetOption {
   label: string;
@@ -19,6 +20,7 @@ export const COMMON_VOICE_OPTIONS: readonly VoicePresetOption[] = [
 ] as const;
 
 export type AudioFormat = (typeof AUDIO_FORMATS)[number];
+export type Theme = (typeof THEME_OPTIONS)[number];
 export type VoiceOption = string;
 
 export interface AppSettings {
@@ -27,6 +29,7 @@ export interface AppSettings {
   voice: VoiceOption;
   format: AudioFormat;
   speed: number;
+  theme: Theme;
 }
 
 export interface MarkdownAttachment {
@@ -50,5 +53,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   endpoint: '',
   format: 'mp3',
   speed: 1,
+  theme: 'system',
   voice: 'en-US-AvaMultilingualNeural',
 };

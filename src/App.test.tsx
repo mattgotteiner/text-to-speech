@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
+import { APP_SETTINGS_STORAGE_KEY, DEFAULT_SETTINGS } from './types';
 import { synthesizeSpeech } from './utils/api';
 
 vi.mock('./utils/api', async () => {
@@ -20,12 +21,53 @@ const synthesizeSpeechMock = vi.mocked(synthesizeSpeech);
 describe('App', () => {
   beforeEach(() => {
     localStorage.clear();
+    document.documentElement.classList.remove('theme-light', 'theme-dark');
     synthesizeSpeechMock.mockReset();
     synthesizeSpeechMock.mockResolvedValue({
       blob: new Blob(['audio'], { type: 'audio/mpeg' }),
       fileName: 'clip.mp3',
       mimeType: 'audio/mpeg',
     });
+  });
+
+  it('renders theme controls in settings and applies the selected root class', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(screen.getByText('Appearance')).toBeInTheDocument();
+    expect(screen.getByLabelText('Light')).toBeInTheDocument();
+    expect(screen.getByLabelText('Dark')).toBeInTheDocument();
+    expect(screen.getByLabelText('System')).toBeChecked();
+
+    await user.click(screen.getByLabelText('Dark'));
+
+    expect(screen.getByLabelText('Dark')).toBeChecked();
+    expect(document.documentElement.classList.contains('theme-dark')).toBe(true);
+    expect(document.documentElement.classList.contains('theme-light')).toBe(false);
+  });
+
+  it('applies the light theme class from stored settings', () => {
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({ ...DEFAULT_SETTINGS, theme: 'light' }),
+    );
+
+    render(<App />);
+
+    expect(document.documentElement.classList.contains('theme-light')).toBe(true);
+    expect(document.documentElement.classList.contains('theme-dark')).toBe(false);
+  });
+
+  it('applies no explicit theme class when system theme is stored', () => {
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({ ...DEFAULT_SETTINGS, theme: 'system' }),
+    );
+
+    render(<App />);
+
+    expect(document.documentElement.classList.contains('theme-light')).toBe(false);
+    expect(document.documentElement.classList.contains('theme-dark')).toBe(false);
   });
 
   it('renders the scaffold and configuration prompt', () => {
