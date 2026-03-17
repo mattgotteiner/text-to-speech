@@ -1,174 +1,66 @@
-# React TS Template
+# Azure Text To Speech
 
-A modern React + TypeScript SPA template built with Vite, ready for GitHub Copilot agents.
+A Vite + React + TypeScript SPA for experimenting locally with Azure Speech text-to-speech using a browser-direct Speech SDK workflow.
 
-> Based on [Vite's official React TypeScript template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts)
+## What it does
 
-## Features
+- Accepts freeform text input
+- Accepts a local Markdown (`.md`) file and merges its contents into the synthesis input
+- Lets you configure an Azure Speech endpoint, API key, a common-voices preset dropdown with custom voice entry, output format, and playback speed
+- Plays generated audio directly in the browser with native seek/play controls
+- Provides a download action for the generated clip
 
-- **React 19** - Latest React with modern features
-- **TypeScript** - Strict mode enabled for type safety
-- **Vite 6** - Lightning-fast development and builds
-- **Vitest 3** - Fast unit testing with React Testing Library
-- **ESLint** - Code linting with React-specific rules
-- **GitHub Actions** - CI/CD with automatic GitHub Pages deployment
-- **Agent-Ready** - AGENTS.md and copilot-instructions.md for AI coding assistants
-- **Reusable Patterns** - Example hook, storage helpers, and test fixture utilities
+## Important security note
+
+This scaffold intentionally mirrors the browser-direct setup used by `responses-chat` so you can test quickly in local/dev environments.
+
+That means:
+
+- your Azure Speech API key is entered in the browser
+- settings are persisted in localStorage on your machine
+- this is not the right security posture for a hardened production deployment
+
+If you need stronger secret handling, place the Azure request behind a trusted proxy or backend.
 
 ## Prerequisites
 
-- **Node.js 22+** - Use [fnm](https://github.com/Schniz/fnm) or [nvm](https://github.com/nvm-sh/nvm)
+- Node.js 22+
+- An Azure Speech resource
+- Azure Speech endpoint and API key
+
+## Getting started
 
 ```bash
-# Install fnm (Fast Node Manager)
-# macOS/Linux
-curl -fsSL https://fnm.vercel.app/install | bash
-
-# Windows (PowerShell)
-winget install Schniz.fnm
-```
-
-## Quick Start
-
-```bash
-# Clone this repository
-git clone <your-repo-url>
-cd react-ts-template
-
-# Install Node.js (uses .node-version file)
-fnm use
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-Open http://localhost:5173 to see the app.
+Then open the local Vite URL, open settings, and enter:
 
-## Available Scripts
+- your Azure Speech endpoint
+- your API key
+
+## Available scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start dev server with HMR; serves unbundled source for fast iteration |
-| `npm run build` | Build for production to `dist/` |
-| `npm run preview` | Serve built `dist/` locally for final QA (run `build` first) |
-| `npm run test` | Run tests in watch mode |
-| `npm run test:run` | Run tests once |
-| `npm run lint` | Lint code with ESLint |
-| `npm run typecheck` | Type-check the app without emitting files |
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Type-check and build the app |
+| `npm run generate-icons` | Regenerate favicon and PWA icon assets |
+| `npm run lint` | Run ESLint |
+| `npm run test:run` | Run Vitest once |
+| `npm run typecheck` | Run TypeScript without emitting |
 
-## Project Structure
+## Local testing flow
 
-```
-├── .github/
-│   ├── copilot-instructions.md    # GitHub Copilot instructions
-│   └── workflows/
-│       ├── ci.yml                  # CI pipeline (lint, test, build)
-│       └── deploy.yml              # Deploy to GitHub Pages
-├── public/                         # Static files served as-is
-├── src/
-│   ├── assets/
-│   │   └── react.svg               # Example static asset
-│   ├── components/
-│   │   └── Button/
-│   │       ├── Button.css          # Component styles
-│   │       ├── Button.test.tsx     # Component tests
-│   │       ├── Button.tsx          # Component implementation
-│   │       └── index.ts            # Barrel export
-│   ├── hooks/
-│   │   ├── useCounter.test.ts      # Hook tests
-│   │   └── useCounter.ts           # Example custom hook
-│   │   ├── useIsMobile.test.ts     # Responsive hook tests
-│   │   └── useIsMobile.ts          # Example responsive hook
-│   ├── test/
-│   │   ├── fixtures/
-│   │   │   └── example.json        # Example test fixture
-│   │   ├── helpers.test.ts         # Test helper tests
-│   │   ├── helpers.ts              # Generic fixture loading helpers
-│   │   └── setup.ts                # Vitest setup + window mocks
-│   ├── utils/
-│   │   ├── formatDate.test.ts      # Utility tests
-│   │   └── formatDate.ts           # Example utility functions
-│   │   ├── localStorage.test.ts    # localStorage helper tests
-│   │   └── localStorage.ts         # Generic localStorage helpers
-│   ├── App.css                     # App component styles
-│   ├── App.test.tsx                # App tests
-│   ├── App.tsx                     # Root component
-│   ├── index.css                   # Global styles
-│   ├── main.tsx                    # Entry point
-│   └── vite-env.d.ts               # Vite type definitions
-├── .node-version                   # Node version for fnm
-├── .nvmrc                          # Node version for nvm
-├── AGENTS.md                       # AI coding agent instructions
-├── eslint.config.js                # ESLint configuration
-├── index.html                      # HTML entry point
-├── package.json                    # Dependencies and scripts
-├── tsconfig.app.json               # App TypeScript config
-├── tsconfig.json                   # Base TypeScript config
-├── tsconfig.node.json              # Node TypeScript config
-└── vite.config.ts                  # Vite + Vitest config
-```
+1. Paste or type text into the composer
+2. Optionally attach a Markdown file
+3. Click `Generate audio`
+4. Preview the result in the built-in audio player
+5. Download the generated file if you want to keep it
 
-## Development Workflow
+## Notes
 
-### Before Committing
-
-```bash
-npm run lint          # Check for lint errors
-npm run test:run      # Run all tests
-npm run typecheck     # Type check
-```
-
-### Adding New Components
-
-1. Create component in `src/components/`
-2. Add tests in the same directory
-3. Run tests to verify
-
-See `src/components/Button/` for an example component with tests.
-
-### Example Patterns Included
-
-- `src/hooks/useIsMobile.ts` shows a responsive hook pattern backed by `matchMedia`
-- `src/utils/localStorage.ts` shows typed localStorage helpers with safe fallbacks
-- `src/test/helpers.ts` shows how to load fixture files from `src/test/fixtures/`
-- `src/test/setup.ts` includes a default `matchMedia` mock for viewport-aware tests
-
-## Deployment
-
-### GitHub Pages
-
-The repository is configured for automatic deployment to GitHub Pages.
-
-**First-time setup (required):**
-
-1. Go to repository **Settings** → **Pages**
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**
-
-Once enabled, every push to `main` will automatically build and deploy your site.
-
-## AI Agent Support
-
-This repository includes configuration files for AI coding agents:
-
-- **AGENTS.md** - Detailed instructions for AI agents (commands, code style, boundaries)
-- **.github/copilot-instructions.md** - GitHub Copilot-specific instructions
-
-These files help AI assistants understand the project structure, coding conventions, and what they should/shouldn't modify.
-
-## Tech Stack
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 19.x | UI library |
-| TypeScript | 5.7.x | Type safety |
-| Vite | 6.x | Build tool |
-| Vitest | 3.x | Test framework |
-| ESLint | 9.x | Code linting |
-| React Testing Library | 16.x | Component testing |
-
-## License
-
-MIT
+- The app validates against Azure Speech's documented 64 KB real-time SSML request limit, so the composer shows both raw character count and encoded payload size
+- This app uses the `microsoft-cognitiveservices-speech-sdk` package directly in the browser and converts the returned `audioData` into a downloadable `Blob`
+- If you previously used the Azure OpenAI flow, reset settings once so the app clears the old localStorage schema
