@@ -28,22 +28,22 @@ function drawIcon(size) {
   ctx.fillStyle = BG_COLOR;
   ctx.fillRect(0, 0, size, size);
 
-  const cardX = size * 0.16;
-  const cardY = size * 0.16;
-  const cardW = size * 0.68;
-  const cardH = size * 0.68;
-  const cardRadius = size * 0.16;
+  const cardX = size * 0.0625;
+  const cardY = size * 0.0625;
+  const cardW = size * 0.875;
+  const cardH = size * 0.875;
+  const cardRadius = size * 0.14;
 
   roundRect(ctx, cardX, cardY, cardW, cardH, cardRadius);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
 
-  const leftInset = cardX + size * 0.12;
-  const lineY = cardY + size * 0.2;
-  const lineHeight = Math.max(2, size * 0.055);
+  const leftInset = cardX + cardW * 0.14 - size * 0.0625;
+  const lineY = cardY + cardH * 0.25;
+  const lineHeight = Math.max(3, size * 0.078);
   const lineRadius = lineHeight / 2;
-  const lineGap = size * 0.1;
-  const lineWidths = [size * 0.14, size * 0.11, size * 0.125];
+  const lineGap = cardH * 0.145;
+  const lineWidths = [cardW * 0.24, cardW * 0.2, cardW * 0.22, cardW * 0.17];
 
   ctx.fillStyle = BG_COLOR;
   lineWidths.forEach((lineWidth, index) => {
@@ -58,11 +58,11 @@ function drawIcon(size) {
     ctx.fill();
   });
 
-  const playCenterX = cardX + cardW * 0.56;
+  const playCenterX = cardX + cardW * 0.58;
   const playCenterY = cardY + cardH * 0.5;
-  const playWidth = size * 0.12;
-  const playHeight = size * 0.16;
-  const playOffsetX = size * 0.03;
+  const playWidth = size * 0.17;
+  const playHeight = size * 0.22;
+  const playOffsetX = size * 0.096875;
 
   ctx.beginPath();
   ctx.moveTo(playCenterX - playOffsetX - playWidth * 0.45, playCenterY - playHeight * 0.55);
@@ -72,10 +72,10 @@ function drawIcon(size) {
   ctx.fill();
 
   ctx.strokeStyle = ACCENT_COLOR;
-  ctx.lineWidth = Math.max(2, size * 0.035);
+  ctx.lineWidth = Math.max(2.5, size * 0.05);
   ctx.lineCap = 'round';
 
-  const arcGap = size * 0.04;
+  const arcGap = size * 0.03;
   const arcStart = -Math.PI / 3;
   const arcEnd = Math.PI / 3;
 
@@ -86,6 +86,12 @@ function drawIcon(size) {
   if (size >= 24) {
     ctx.beginPath();
     ctx.arc(playCenterX + size * 0.018, playCenterY, size * 0.18 + arcGap, arcStart, arcEnd);
+    ctx.stroke();
+  }
+
+  if (size >= 32) {
+    ctx.beginPath();
+    ctx.arc(playCenterX + size * 0.024, playCenterY, size * 0.24 + arcGap * 2, arcStart, arcEnd);
     ctx.stroke();
   }
 
