@@ -2,15 +2,6 @@
   min-width: 0;
 }
 
-.app-eyebrow {
-  color: var(--spa-color-text-muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.35rem;
-  text-transform: uppercase;
-}
-
 .app-title-block h1 {
   font-size: 1.125rem;
   font-weight: 600;

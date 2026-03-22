@@ -81,6 +81,7 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByText('Azure Text To Speech')).toBeInTheDocument();
+    expect(screen.queryByText('Browser-direct Azure Speech')).not.toBeInTheDocument();
     expect(screen.getAllByText('Configure your Azure Speech settings to get started.')).toHaveLength(2);
     expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
     expect(screen.queryByLabelText('Close settings')).not.toBeInTheDocument();
