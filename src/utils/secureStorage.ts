@@ -39,7 +39,18 @@ function encodeBase64(bytes: Uint8Array): string {
 }
 
 function decodeBase64(value: string): Uint8Array {
-  return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
+  const decodedValue = atob(value);
+  const bytes = new Uint8Array(new ArrayBuffer(decodedValue.length));
+
+  for (let index = 0; index < decodedValue.length; index += 1) {
+    bytes[index] = decodedValue.charCodeAt(index);
+  }
+
+  return bytes;
+}
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
 
 function openSecureStorageDatabase(): Promise<IDBDatabase> {
@@ -127,15 +138,17 @@ export function isEncryptedValue(value: unknown): value is EncryptedValue {
 export async function encryptValue(value: string): Promise<EncryptedValue> {
   const cryptoApi = getWebCrypto();
   const encryptionKey = await getOrCreateEncryptionKey();
-  const initializationVector = cryptoApi.getRandomValues(new Uint8Array(ENCRYPTION_IV_LENGTH));
+  const initializationVector = cryptoApi.getRandomValues(
+    new Uint8Array(new ArrayBuffer(ENCRYPTION_IV_LENGTH)),
+  );
   const encodedValue = new TextEncoder().encode(value);
   const ciphertextBuffer = await cryptoApi.subtle.encrypt(
     {
-      iv: initializationVector,
+      iv: toArrayBuffer(initializationVector),
       name: ENCRYPTION_ALGORITHM,
     },
     encryptionKey,
-    encodedValue,
+    toArrayBuffer(encodedValue),
   );
 
   return {
@@ -156,11 +169,11 @@ export async function decryptValue(encryptedValue: EncryptedValue): Promise<stri
   try {
     const decryptedBuffer = await cryptoApi.subtle.decrypt(
       {
-        iv: decodeBase64(encryptedValue.iv),
+        iv: toArrayBuffer(decodeBase64(encryptedValue.iv)),
         name: ENCRYPTION_ALGORITHM,
       },
       encryptionKey,
-      decodeBase64(encryptedValue.ciphertext),
+      toArrayBuffer(decodeBase64(encryptedValue.ciphertext)),
     );
 
     return new TextDecoder().decode(decryptedBuffer);
