@@ -7,26 +7,30 @@ import {
   getAudioMimeType,
   getSpeechRequestSizeBytes,
   getSpeechOutputFormat,
+  getSpeechWebSocketUrl,
   isLegacyOpenAiEndpoint,
   isSpeechRequestOverLimit,
-  normalizeSpeechEndpoint,
+  looksLikeUrl,
+  normalizeSpeechRegion,
 } from './api';
 
 describe('api helpers', () => {
-  it('normalizes an Azure Speech endpoint', () => {
-    expect(normalizeSpeechEndpoint('https://example.cognitiveservices.azure.com/')).toBe(
-      'https://example.cognitiveservices.azure.com',
-    );
+  it('normalizes an Azure Speech region', () => {
+    expect(normalizeSpeechRegion(' WestEurope ')).toBe('westeurope');
   });
 
-  it('preserves non-root Speech endpoint paths', () => {
-    expect(normalizeSpeechEndpoint('https://example.cognitiveservices.azure.com/custom/')).toBe(
-      'https://example.cognitiveservices.azure.com/custom',
-    );
+  it('detects URL input when the user pastes an endpoint into the region field', () => {
+    expect(looksLikeUrl('https://example.cognitiveservices.azure.com')).toBe(true);
   });
 
   it('detects legacy Azure OpenAI endpoints', () => {
     expect(isLegacyOpenAiEndpoint('https://example.openai.azure.com')).toBe(true);
+  });
+
+  it('builds the regional speech websocket URL', () => {
+    expect(getSpeechWebSocketUrl('WestEurope')).toBe(
+      'wss://westeurope.tts.speech.microsoft.com/cognitiveservices/websocket/v1',
+    );
   });
 
   it('builds SSML from settings', () => {

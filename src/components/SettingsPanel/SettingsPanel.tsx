@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Button, FormField } from '@mattgotteiner/spa-ui-controls';
 import {
   AUDIO_FORMATS,
+  SPEECH_REGION_OPTIONS,
   THEME_OPTIONS,
   VOICE_CATALOG_OPTIONS,
   type AppSettings,
@@ -84,18 +85,27 @@ export function SettingsPanel({
         <h3 className="settings-section__title">Required</h3>
 
         <FormField
-          hint="Use your Azure Speech resource endpoint from the Azure portal."
-          htmlFor="settings-endpoint"
-          label="Endpoint URL"
+          hint="Enter your Azure Speech region identifier, such as westus, eastus, or westeurope."
+          htmlFor="settings-region"
+          label="Region"
         >
           <input
-            id="settings-endpoint"
+            id="settings-region"
             className="settings-panel__control"
-            type="url"
-            placeholder="https://your-resource.cognitiveservices.azure.com"
-            value={settings.endpoint}
-            onChange={(event) => onUpdate({ endpoint: event.target.value })}
+            type="text"
+            list="settings-region-options"
+            placeholder="westeurope"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            value={settings.region}
+            onChange={(event) => onUpdate({ region: event.target.value })}
           />
+          <datalist id="settings-region-options">
+            {SPEECH_REGION_OPTIONS.map((region) => (
+              <option key={region} value={region} />
+            ))}
+          </datalist>
         </FormField>
 
         <FormField htmlFor="settings-api-key" label="API key">
@@ -110,7 +120,7 @@ export function SettingsPanel({
         </FormField>
 
         <p className="settings-section__notice">
-          This browser-direct scaffold stores your key locally for dev/test use.
+          This browser-direct scaffold stores your key and region locally for dev/test use.
         </p>
       </section>
 

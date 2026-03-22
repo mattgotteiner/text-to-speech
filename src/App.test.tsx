@@ -83,9 +83,7 @@ describe('App', () => {
     expect(screen.getAllByText('Configure your Azure Speech settings to get started.')).toHaveLength(2);
     expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
     expect(screen.queryByLabelText('Close settings')).not.toBeInTheDocument();
-    expect(
-      screen.queryByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('westeurope')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Message input')).toBeInTheDocument();
   });
 
@@ -143,46 +141,34 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    expect(
-      screen.queryByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('westeurope')).not.toBeInTheDocument();
 
     await openSettings(user);
 
-    expect(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('westeurope')).toBeInTheDocument();
 
     await user.click(screen.getByLabelText('Close settings'));
 
-    expect(
-      screen.queryByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('westeurope')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
   });
 
-  it('persists an updated endpoint after closing and reopening settings', async () => {
+  it('persists an updated region after closing and reopening settings', async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await openSettings(user);
 
-    const endpointInput = screen.getByPlaceholderText(
-      'https://your-resource.cognitiveservices.azure.com',
-    );
+    const regionInput = screen.getByPlaceholderText('westeurope');
 
-    await user.click(endpointInput);
-    await user.paste('https://example.openai.azure.com');
+    await user.click(regionInput);
+    await user.paste('WestEurope');
 
     await user.click(screen.getByLabelText('Close settings'));
     await openSettings(user);
 
-    expect(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-    ).toHaveValue('https://example.openai.azure.com');
-    expect(localStorage.getItem(APP_SETTINGS_STORAGE_KEY)).toContain(
-      '"endpoint":"https://example.openai.azure.com"',
-    );
+    expect(screen.getByPlaceholderText('westeurope')).toHaveValue('westeurope');
+    expect(localStorage.getItem(APP_SETTINGS_STORAGE_KEY)).toContain('"region":"westeurope"');
   });
 
   it('generates audio from freeform text', async () => {
@@ -191,10 +177,7 @@ describe('App', () => {
 
     await openSettings(user);
 
-    await user.type(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-      'https://example.cognitiveservices.azure.com',
-    );
+    await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
     await user.type(
       screen.getByPlaceholderText('Paste your Azure Speech key'),
       'test-key',
@@ -207,7 +190,7 @@ describe('App', () => {
       expect(synthesizeSpeechMock).toHaveBeenCalledWith(
         expect.objectContaining({
           apiKey: 'test-key',
-          endpoint: 'https://example.cognitiveservices.azure.com',
+          region: 'westeurope',
           voice: 'en-US-AvaMultilingualNeural',
         }),
         'Read this aloud',
@@ -224,10 +207,7 @@ describe('App', () => {
 
     await openSettings(user);
 
-    await user.type(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-      'https://example.cognitiveservices.azure.com',
-    );
+    await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
     await user.type(
       screen.getByPlaceholderText('Paste your Azure Speech key'),
       'test-key',
@@ -261,10 +241,7 @@ describe('App', () => {
 
     await openSettings(user);
 
-    await user.type(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-      'https://example.cognitiveservices.azure.com',
-    );
+    await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
     await user.type(
       screen.getByPlaceholderText('Paste your Azure Speech key'),
       'test-key',
@@ -288,10 +265,7 @@ describe('App', () => {
     await openSettings(user);
 
     await user.click(screen.getByRole('button', { name: /Ada \(UK, multilingual\)/i }));
-    await user.type(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-      'https://example.cognitiveservices.azure.com',
-    );
+    await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
     await user.type(
       screen.getByPlaceholderText('Paste your Azure Speech key'),
       'test-key',
@@ -317,10 +291,7 @@ describe('App', () => {
     await openSettings(user);
 
     await user.type(screen.getByLabelText('Voice name override'), 'fr-FR-VivienneMultilingualNeural');
-    await user.type(
-      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
-      'https://example.cognitiveservices.azure.com',
-    );
+    await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
     await user.type(
       screen.getByPlaceholderText('Paste your Azure Speech key'),
       'test-key',

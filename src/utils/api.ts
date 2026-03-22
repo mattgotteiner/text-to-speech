@@ -27,19 +27,8 @@ export interface SynthesizedSpeechResponse {
   mimeType: string;
 }
 
-export function normalizeSpeechEndpoint(endpoint: string): string {
-  const trimmed = endpoint.trim();
-
-  if (!trimmed) {
-    return '';
-  }
-
-  try {
-    const url = new URL(trimmed);
-    return url.toString().replace(/\/$/, '');
-  } catch {
-    return trimmed.replace(/\/$/, '');
-  }
+export function normalizeSpeechRegion(region: string): string {
+  return region.trim().toLowerCase();
 }
 
 export function isLegacyOpenAiEndpoint(endpoint: string): boolean {
@@ -49,6 +38,26 @@ export function isLegacyOpenAiEndpoint(endpoint: string): boolean {
     normalizedEndpoint.includes('.openai.azure.com') ||
     normalizedEndpoint.includes('/openai')
   );
+}
+
+export function looksLikeUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+function looksLikeSpeechEndpointInput(value: string): boolean {
+  const normalizedValue = value.trim().toLowerCase();
+
+  return (
+    looksLikeUrl(normalizedValue) ||
+    normalizedValue.includes('.cognitiveservices.azure.com') ||
+    normalizedValue.includes('.speech.microsoft.com') ||
+    normalizedValue.includes('.api.cognitive.microsoft.com') ||
+    normalizedValue.includes('.openai.azure.com')
+  );
+}
+
+export function getSpeechWebSocketUrl(region: string): string {
+  return `wss://${normalizeSpeechRegion(region)}.tts.speech.microsoft.com/cognitiveservices/websocket/v1`;
 }
 
 export function getAudioMimeType(format: AudioFormat): string {
@@ -106,17 +115,17 @@ export function isSpeechRequestOverLimit(settings: AppSettings, input: string): 
 }
 
 export function createSpeechConfig(
-  settings: Pick<AppSettings, 'endpoint' | 'apiKey' | 'voice' | 'voiceOverride' | 'format'>,
+  settings: Pick<AppSettings, 'region' | 'apiKey' | 'voice' | 'voiceOverride' | 'format'>,
 ): SpeechConfig {
-  const normalizedEndpoint = normalizeSpeechEndpoint(settings.endpoint);
+  const normalizedRegion = normalizeSpeechRegion(settings.region);
 
-  if (!normalizedEndpoint) {
-    throw new Error('Add your Azure Speech endpoint in settings before generating audio.');
+  if (!normalizedRegion) {
+    throw new Error('Add your Azure Speech region in settings before generating audio.');
   }
 
-  if (isLegacyOpenAiEndpoint(normalizedEndpoint)) {
+  if (looksLikeSpeechEndpointInput(normalizedRegion)) {
     throw new Error(
-      'Your saved settings still point to Azure OpenAI. Reset settings and enter an Azure Speech endpoint.',
+      'Enter your Azure Speech region identifier (for example, eastus or westeurope), not the full endpoint URL.',
     );
   }
 
@@ -124,10 +133,7 @@ export function createSpeechConfig(
     throw new Error('Add your Azure Speech API key in settings before generating audio.');
   }
 
-  const speechConfig = SpeechConfig.fromEndpoint(
-    new URL(normalizedEndpoint),
-    settings.apiKey.trim(),
-  );
+  const speechConfig = SpeechConfig.fromSubscription(settings.apiKey.trim(), normalizedRegion);
   speechConfig.speechSynthesisOutputFormat = getSpeechOutputFormat(settings.format);
   speechConfig.speechSynthesisVoiceName = getEffectiveVoiceName(settings);
 
@@ -147,7 +153,7 @@ export async function synthesizeSpeech(
   settings: AppSettings,
   input: string,
 ): Promise<SynthesizedSpeechResponse> {
-  const normalizedEndpoint = normalizeSpeechEndpoint(settings.endpoint);
+  const normalizedRegion = normalizeSpeechRegion(settings.region);
   const request = buildSpeechRequest(settings, input);
   const requestSizeBytes = new TextEncoder().encode(request).length;
   const startedAt = performance.now();
@@ -159,12 +165,13 @@ export async function synthesizeSpeech(
   }
 
   logTtsEvent('Creating Azure Speech client', {
-    endpoint: normalizedEndpoint,
     format: settings.format,
     inputLength: input.length,
+    region: normalizedRegion,
     requestSizeBytes,
     speed: settings.speed,
     voice: getEffectiveVoiceName(settings),
+    webSocketUrl: normalizedRegion ? getSpeechWebSocketUrl(normalizedRegion) : null,
   });
 
   const speechConfig = createSpeechConfig(settings);
@@ -180,7 +187,7 @@ export async function synthesizeSpeech(
       },
       (error) => {
         synthesizer.close();
-        reject(new Error(error));
+        reject(new Error(addSpeechTroubleshootingGuidance(error, normalizedRegion)));
       },
     );
   });
@@ -191,7 +198,12 @@ export async function synthesizeSpeech(
 
   if (result.reason === ResultReason.Canceled) {
     const cancellationDetails = CancellationDetails.fromResult(result);
-    throw new Error(cancellationDetails.errorDetails || 'Speech synthesis was canceled.');
+    throw new Error(
+      addSpeechTroubleshootingGuidance(
+        cancellationDetails.errorDetails || 'Speech synthesis was canceled.',
+        normalizedRegion,
+      ),
+    );
   }
 
   if (result.reason !== ResultReason.SynthesizingAudioCompleted || result.audioData.byteLength === 0) {
@@ -225,4 +237,41 @@ export function toErrorMessage(error: unknown): string {
   }
 
   return 'Something went wrong while processing the request.';
+}
+
+function addSpeechTroubleshootingGuidance(message: string, region: string): string {
+  const guidance = new Set<string>();
+  const normalizedMessage = message.toLowerCase();
+  const normalizedRegion = normalizeSpeechRegion(region);
+
+  if (
+    normalizedMessage.includes('1006') ||
+    normalizedMessage.includes('websocket') ||
+    normalizedMessage.includes('connection was closed')
+  ) {
+    guidance.add(
+      `Check that your Speech key matches the ${normalizedRegion} region and that outbound WebSocket access to ${getSpeechWebSocketUrl(normalizedRegion)} is not blocked by a firewall, proxy, or browser extension.`,
+    );
+  }
+
+  if (
+    normalizedMessage.includes('authentication') ||
+    normalizedMessage.includes('unauthorized') ||
+    normalizedMessage.includes('forbidden') ||
+    normalizedMessage.includes('401') ||
+    normalizedMessage.includes('403') ||
+    normalizedMessage.includes('subscription')
+  ) {
+    guidance.add(
+      `Confirm that the API key belongs to the same Azure Speech resource region (${normalizedRegion}).`,
+    );
+  }
+
+  if (guidance.size === 0) {
+    guidance.add(
+      `Confirm that the API key belongs to the ${normalizedRegion} Speech region and that your network allows secure WebSocket connections to ${getSpeechWebSocketUrl(normalizedRegion)}.`,
+    );
+  }
+
+  return `${message} ${Array.from(guidance).join(' ')}`.trim();
 }

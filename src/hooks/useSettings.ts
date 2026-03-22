@@ -3,6 +3,7 @@ import {
   APP_SETTINGS_STORAGE_KEY,
   AUDIO_FORMATS,
   DEFAULT_SETTINGS,
+  SPEECH_REGION_OPTIONS,
   type AudioFormat,
   type AppSettings,
   type Theme,
@@ -13,6 +14,7 @@ import { findVoiceCatalogOption } from '../utils/voices';
 
 const MIN_SPEECH_SPEED = 0.5;
 const MAX_SPEECH_SPEED = 2;
+const KNOWN_SPEECH_REGIONS = new Set<string>(SPEECH_REGION_OPTIONS);
 
 function clampSpeed(speed: number): number {
   if (Number.isNaN(speed)) {
@@ -38,12 +40,41 @@ function isTheme(value: unknown): value is Theme {
   return typeof value === 'string' && THEME_OPTIONS.includes(value as Theme);
 }
 
+function normalizeRegion(region: string): string {
+  return region.trim().toLowerCase();
+}
+
+function inferRegionFromEndpoint(endpoint: string): string {
+  const trimmed = endpoint.trim();
+  const normalizedEndpoint = trimmed.toLowerCase();
+
+  if (
+    !trimmed ||
+    normalizedEndpoint.includes('.openai.azure.com') ||
+    normalizedEndpoint.includes('/openai')
+  ) {
+    return '';
+  }
+
+  try {
+    const { hostname } = new URL(trimmed);
+    const normalizedHost = hostname.toLowerCase();
+    const apiRegionMatch = normalizedHost.match(/^([a-z0-9]+)\.api\.cognitive\.microsoft\.com$/);
+    const speechRegionMatch = normalizedHost.match(/^([a-z0-9]+)\.(?:stt|tts)\.speech\.microsoft\.com$/);
+    const candidateRegion = apiRegionMatch?.[1] ?? speechRegionMatch?.[1] ?? '';
+
+    return KNOWN_SPEECH_REGIONS.has(candidateRegion) ? candidateRegion : '';
+  } catch {
+    return '';
+  }
+}
+
 function normalizeSettings(settings: AppSettings): AppSettings {
   return {
     ...settings,
     apiKey: settings.apiKey.trim(),
-    endpoint: settings.endpoint.trim(),
     format: isAudioFormat(settings.format) ? settings.format : DEFAULT_SETTINGS.format,
+    region: normalizeRegion(settings.region),
     speed: clampSpeed(settings.speed),
     theme: isTheme(settings.theme) ? settings.theme : DEFAULT_SETTINGS.theme,
     voice: settings.voice.trim() || DEFAULT_SETTINGS.voice,
@@ -56,8 +87,12 @@ function hydrateSettings(value: unknown): AppSettings {
     return DEFAULT_SETTINGS;
   }
 
-  const endpoint = typeof value.endpoint === 'string' ? value.endpoint : DEFAULT_SETTINGS.endpoint;
   const apiKey = typeof value.apiKey === 'string' ? value.apiKey : DEFAULT_SETTINGS.apiKey;
+  const legacyEndpoint = typeof value.endpoint === 'string' ? value.endpoint : '';
+  const region =
+    typeof value.region === 'string' && value.region.trim().length > 0
+      ? value.region
+      : inferRegionFromEndpoint(legacyEndpoint);
   const storedVoice = typeof value.voice === 'string' ? value.voice : DEFAULT_SETTINGS.voice;
   const voiceOverride =
     typeof value.voiceOverride === 'string' ? value.voiceOverride : DEFAULT_SETTINGS.voiceOverride;
@@ -81,8 +116,8 @@ function hydrateSettings(value: unknown): AppSettings {
 
   return normalizeSettings({
     apiKey,
-    endpoint,
     format,
+    region,
     speed,
     theme,
     voice: catalogVoice,
@@ -124,9 +159,9 @@ export function useSettings(): UseSettingsReturn {
 
   const isConfigured = useMemo(
     () =>
-      settings.endpoint.length > 0 &&
+      settings.region.length > 0 &&
       settings.apiKey.length > 0,
-    [settings.apiKey.length, settings.endpoint.length],
+    [settings.apiKey.length, settings.region.length],
   );
 
   return {
