@@ -38,6 +38,7 @@ describe('useSettings', () => {
         endpoint: ' https://example.cognitiveservices.azure.com/ ',
         speed: 9,
         voice: ' en-US-JennyNeural ',
+        voiceOverride: ' fr-FR-VivienneMultilingualNeural ',
       });
     });
 
@@ -46,6 +47,7 @@ describe('useSettings', () => {
     expect(result.current.settings.speed).toBe(2);
     expect(result.current.settings.theme).toBe('system');
     expect(result.current.settings.voice).toBe('en-US-JennyNeural');
+    expect(result.current.settings.voiceOverride).toBe('fr-FR-VivienneMultilingualNeural');
     expect(result.current.isConfigured).toBe(true);
   });
 
@@ -65,8 +67,37 @@ describe('useSettings', () => {
 
     expect(result.current.settings.theme).toBe('system');
     expect(localStorage.getItem(APP_SETTINGS_STORAGE_KEY)).toBe(
-      JSON.stringify({ ...DEFAULT_SETTINGS, apiKey: 'speech-key', endpoint: 'https://example.cognitiveservices.azure.com/' }),
+        JSON.stringify({ ...DEFAULT_SETTINGS, apiKey: 'speech-key', endpoint: 'https://example.cognitiveservices.azure.com/' }),
+      );
+  });
+
+  it('preserves stored endpoints when there are no legacy OpenAI-only fields', () => {
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        ...DEFAULT_SETTINGS,
+        endpoint: 'https://example.openai.azure.com',
+      }),
     );
+
+    const { result } = renderHook(() => useSettings());
+
+    expect(result.current.settings.endpoint).toBe('https://example.openai.azure.com');
+  });
+
+  it('migrates a previously saved custom voice into the override field', () => {
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        ...DEFAULT_SETTINGS,
+        voice: 'custom-voice-name',
+      }),
+    );
+
+    const { result } = renderHook(() => useSettings());
+
+    expect(result.current.settings.voice).toBe(DEFAULT_SETTINGS.voice);
+    expect(result.current.settings.voiceOverride).toBe('custom-voice-name');
   });
 
   it('normalizes invalid theme updates back to the default theme', () => {

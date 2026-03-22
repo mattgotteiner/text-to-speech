@@ -1,10 +1,13 @@
+import { useMemo, useState } from 'react';
 import { Button, FormField } from '@mattgotteiner/spa-ui-controls';
 import {
   AUDIO_FORMATS,
-  COMMON_VOICE_OPTIONS,
   THEME_OPTIONS,
+  VOICE_CATALOG_OPTIONS,
   type AppSettings,
+  type VoiceCatalogOption,
 } from '../../types';
+import { filterVoiceCatalogOptions } from '../../utils/voices';
 import './SettingsPanel.css';
 
 interface SettingsPanelProps {
@@ -13,18 +16,40 @@ interface SettingsPanelProps {
   onReset: () => void;
 }
 
-const CUSTOM_VOICE_OPTION = '__custom_voice__';
-const SUGGESTED_VOICE_VALUES = new Set(COMMON_VOICE_OPTIONS.map(({ value }) => value));
+function groupCatalogVoices(
+  voices: readonly VoiceCatalogOption[],
+): Array<[string, VoiceCatalogOption[]]> {
+  const voiceGroups = new Map<string, VoiceCatalogOption[]>();
+
+  for (const voice of voices) {
+    const existingGroup = voiceGroups.get(voice.group);
+
+    if (existingGroup) {
+      existingGroup.push(voice);
+      continue;
+    }
+
+    voiceGroups.set(voice.group, [voice]);
+  }
+
+  return Array.from(voiceGroups.entries());
+}
 
 export function SettingsPanel({
   settings,
   onUpdate,
   onReset,
 }: SettingsPanelProps): React.ReactElement {
-  const selectedVoicePreset = SUGGESTED_VOICE_VALUES.has(settings.voice)
-    ? settings.voice
-    : CUSTOM_VOICE_OPTION;
+  const [voiceSearch, setVoiceSearch] = useState<string>('');
 
+  const matchedCatalogVoices = useMemo(
+    () => filterVoiceCatalogOptions(voiceSearch),
+    [voiceSearch],
+  );
+  const groupedCatalogVoices = useMemo(
+    () => groupCatalogVoices(matchedCatalogVoices),
+    [matchedCatalogVoices],
+  );
   return (
     <div className="settings-panel">
       <section className="settings-section">
@@ -65,6 +90,7 @@ export function SettingsPanel({
         >
           <input
             id="settings-endpoint"
+            className="settings-panel__control"
             type="url"
             placeholder="https://your-resource.cognitiveservices.azure.com"
             value={settings.endpoint}
@@ -75,6 +101,7 @@ export function SettingsPanel({
         <FormField htmlFor="settings-api-key" label="API key">
           <input
             id="settings-api-key"
+            className="settings-panel__control"
             type="password"
             placeholder="Paste your Azure Speech key"
             value={settings.apiKey}
@@ -91,49 +118,80 @@ export function SettingsPanel({
         <h3 className="settings-section__title">Audio</h3>
 
         <FormField
-          hint="The preset list uses broadly useful multilingual voices from the Azure Speech catalog."
-          htmlFor="settings-voice-preset"
-          label="Voice preset"
+          hint={`Prefix search across labels, locales, and Azure voice names. Showing ${matchedCatalogVoices.length} of ${VOICE_CATALOG_OPTIONS.length} voices.`}
+          htmlFor="settings-voice-search"
+          label="Voice catalog"
         >
-          <select
-            id="settings-voice-preset"
-            value={selectedVoicePreset}
-            onChange={(event) => {
-              const nextVoice = event.target.value;
+          <div className="settings-voice-catalog">
+            <input
+              id="settings-voice-search"
+              className="settings-voice-catalog__search"
+              type="search"
+              placeholder="Try ava, en-US, fr-FR, xia..."
+              value={voiceSearch}
+              onChange={(event) => setVoiceSearch(event.target.value)}
+            />
 
-              if (nextVoice !== CUSTOM_VOICE_OPTION) {
-                onUpdate({ voice: nextVoice });
-              }
-            }}
-          >
-            <optgroup label="Common voices">
-              {COMMON_VOICE_OPTIONS.map((voice) => (
-                <option key={voice.value} value={voice.value}>
-                  {voice.label}
-                </option>
-              ))}
-            </optgroup>
-            <option value={CUSTOM_VOICE_OPTION}>Custom voice name</option>
-          </select>
+            {matchedCatalogVoices.length > 0 ? (
+              <div className="settings-voice-catalog__groups" aria-label="Voice catalog results">
+                {groupedCatalogVoices.map(([group, voices]) => (
+                  <section key={group} className="settings-voice-catalog__group">
+                    <h4 className="settings-voice-catalog__group-title">{group}</h4>
+                    <div className="settings-voice-catalog__list">
+                      {voices.map((voice) => {
+                        const isSelected =
+                          settings.voiceOverride.trim().length === 0 &&
+                          settings.voice.trim() === voice.value;
+
+                        return (
+                          <button
+                            key={voice.value}
+                            type="button"
+                            className={`settings-voice-catalog__item${isSelected ? ' settings-voice-catalog__item--selected' : ''}`}
+                            aria-pressed={isSelected}
+                            onClick={() =>
+                              onUpdate({
+                                voice: voice.value,
+                                voiceOverride: '',
+                              })
+                            }
+                          >
+                            <span className="settings-voice-catalog__item-label">{voice.label}</span>
+                            <span className="settings-voice-catalog__item-value">{voice.value}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <p className="settings-voice-catalog__empty" role="status">
+                No voices match that prefix yet. Keep typing or paste a custom Azure voice name below.
+              </p>
+            )}
+          </div>
         </FormField>
 
         <FormField
-          hint="You can still paste any Azure Speech voice name here if you want something outside the preset lists."
+          hint="Optional override. When this has a value, the catalog selection is deselected and the specified voice name is used."
           htmlFor="settings-voice-name"
-          label="Voice name"
+          label="Voice name override"
         >
           <input
             id="settings-voice-name"
+            className="settings-panel__control"
             type="text"
-            placeholder={COMMON_VOICE_OPTIONS[0].value}
-            value={settings.voice}
-            onChange={(event) => onUpdate({ voice: event.target.value })}
+            placeholder={VOICE_CATALOG_OPTIONS[0].value}
+            value={settings.voiceOverride}
+            onChange={(event) => onUpdate({ voiceOverride: event.target.value })}
           />
         </FormField>
 
         <FormField htmlFor="settings-format" label="Output format">
           <select
             id="settings-format"
+            className="settings-panel__control"
             value={settings.format}
             onChange={(event) =>
               onUpdate({ format: event.target.value as AppSettings['format'] })
@@ -154,6 +212,7 @@ export function SettingsPanel({
         >
           <input
             id="settings-speed"
+            className="settings-panel__control"
             type="number"
             min="0.5"
             max="2"

@@ -26,6 +26,7 @@ import {
   toErrorMessage,
 } from './utils/api';
 import { buildSpeechInput, readMarkdownFile } from './utils/markdown';
+import { getEffectiveVoiceName } from './utils/voices';
 
 interface ThemeSettingsSyncProps {
   theme: Theme;
@@ -121,11 +122,11 @@ function AppContent(): React.ReactElement {
 
     const startedAt = performance.now();
 
-    console.info('[text-audio] Generate requested', {
-      attachmentName: attachment?.name ?? null,
-      inputLength: combinedInput.length,
-      voice: settings.voice,
-    });
+      console.info('[text-audio] Generate requested', {
+        attachmentName: attachment?.name ?? null,
+        inputLength: combinedInput.length,
+        voice: getEffectiveVoiceName(settings),
+      });
 
     setIsGenerating(true);
     setGenerationError(null);
@@ -148,7 +149,7 @@ function AppContent(): React.ReactElement {
         fileName: response.fileName,
         format: settings.format,
         input: combinedInput,
-        voice: settings.voice,
+        voice: getEffectiveVoiceName(settings),
       });
 
       console.info('[text-audio] Generate completed successfully', {

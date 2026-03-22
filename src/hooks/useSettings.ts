@@ -9,6 +9,7 @@ import {
   THEME_OPTIONS,
 } from '../types';
 import { getStoredValue, setStoredValue } from '../utils/localStorage';
+import { findVoiceCatalogOption } from '../utils/voices';
 
 const MIN_SPEECH_SPEED = 0.5;
 const MAX_SPEECH_SPEED = 2;
@@ -26,14 +27,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isLegacyOpenAiSettings(settings: Record<string, unknown>): boolean {
-  const endpoint = typeof settings.endpoint === 'string' ? settings.endpoint : '';
-
-  return (
-    'deployment' in settings ||
-    'instructions' in settings ||
-    endpoint.includes('.openai.azure.com') ||
-    endpoint.includes('/openai')
-  );
+  return 'deployment' in settings || 'instructions' in settings;
 }
 
 function isAudioFormat(value: unknown): value is AudioFormat {
@@ -53,6 +47,7 @@ function normalizeSettings(settings: AppSettings): AppSettings {
     speed: clampSpeed(settings.speed),
     theme: isTheme(settings.theme) ? settings.theme : DEFAULT_SETTINGS.theme,
     voice: settings.voice.trim() || DEFAULT_SETTINGS.voice,
+    voiceOverride: settings.voiceOverride.trim(),
   };
 }
 
@@ -63,7 +58,9 @@ function hydrateSettings(value: unknown): AppSettings {
 
   const endpoint = typeof value.endpoint === 'string' ? value.endpoint : DEFAULT_SETTINGS.endpoint;
   const apiKey = typeof value.apiKey === 'string' ? value.apiKey : DEFAULT_SETTINGS.apiKey;
-  const voice = typeof value.voice === 'string' ? value.voice : DEFAULT_SETTINGS.voice;
+  const storedVoice = typeof value.voice === 'string' ? value.voice : DEFAULT_SETTINGS.voice;
+  const voiceOverride =
+    typeof value.voiceOverride === 'string' ? value.voiceOverride : DEFAULT_SETTINGS.voiceOverride;
   const format = isAudioFormat(value.format) ? value.format : DEFAULT_SETTINGS.format;
   const theme = isTheme(value.theme) ? value.theme : DEFAULT_SETTINGS.theme;
   const speed =
@@ -73,13 +70,23 @@ function hydrateSettings(value: unknown): AppSettings {
         ? Number(value.speed)
         : DEFAULT_SETTINGS.speed;
 
+  const normalizedStoredVoice = storedVoice.trim();
+  const catalogVoice = findVoiceCatalogOption(normalizedStoredVoice)
+    ? normalizedStoredVoice
+    : DEFAULT_SETTINGS.voice;
+  const normalizedVoiceOverride =
+    voiceOverride.trim() || (normalizedStoredVoice && !findVoiceCatalogOption(normalizedStoredVoice)
+      ? normalizedStoredVoice
+      : DEFAULT_SETTINGS.voiceOverride);
+
   return normalizeSettings({
     apiKey,
     endpoint,
     format,
     speed,
     theme,
-    voice,
+    voice: catalogVoice,
+    voiceOverride: normalizedVoiceOverride,
   });
 }
 

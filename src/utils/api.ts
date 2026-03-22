@@ -7,6 +7,7 @@ import {
   SpeechSynthesizer,
 } from 'microsoft-cognitiveservices-speech-sdk';
 import { MAX_TTS_SSML_BYTES, type AppSettings, type AudioFormat } from '../types';
+import { getEffectiveVoiceName } from './voices';
 
 const AUDIO_MIME_TYPES: Record<AudioFormat, string> = {
   mp3: 'audio/mpeg',
@@ -60,7 +61,7 @@ export function getSpeechOutputFormat(format: AudioFormat): SpeechSynthesisOutpu
 
 export function buildAudioFileName(settings: AppSettings): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  return `tts-${settings.voice}-${timestamp}.${settings.format}`;
+  return `tts-${getEffectiveVoiceName(settings)}-${timestamp}.${settings.format}`;
 }
 
 function escapeSsmlText(input: string): string {
@@ -83,7 +84,7 @@ function formatProsodyRate(speed: number): string {
 }
 
 export function buildSpeechRequest(settings: AppSettings, input: string): string {
-  const normalizedVoice = settings.voice.trim();
+  const normalizedVoice = getEffectiveVoiceName(settings);
   const locale = getVoiceLocale(normalizedVoice);
   const escapedInput = escapeSsmlText(input);
 
@@ -105,16 +106,12 @@ export function isSpeechRequestOverLimit(settings: AppSettings, input: string): 
 }
 
 export function createSpeechConfig(
-  settings: Pick<AppSettings, 'endpoint' | 'apiKey' | 'voice' | 'format'>,
+  settings: Pick<AppSettings, 'endpoint' | 'apiKey' | 'voice' | 'voiceOverride' | 'format'>,
 ): SpeechConfig {
   const normalizedEndpoint = normalizeSpeechEndpoint(settings.endpoint);
 
   if (!normalizedEndpoint) {
     throw new Error('Add your Azure Speech endpoint in settings before generating audio.');
-  }
-
-  if (!settings.apiKey.trim()) {
-    throw new Error('Add your Azure Speech API key in settings before generating audio.');
   }
 
   if (isLegacyOpenAiEndpoint(normalizedEndpoint)) {
@@ -123,12 +120,16 @@ export function createSpeechConfig(
     );
   }
 
+  if (!settings.apiKey.trim()) {
+    throw new Error('Add your Azure Speech API key in settings before generating audio.');
+  }
+
   const speechConfig = SpeechConfig.fromEndpoint(
     new URL(normalizedEndpoint),
     settings.apiKey.trim(),
   );
   speechConfig.speechSynthesisOutputFormat = getSpeechOutputFormat(settings.format);
-  speechConfig.speechSynthesisVoiceName = settings.voice.trim();
+  speechConfig.speechSynthesisVoiceName = getEffectiveVoiceName(settings);
 
   return speechConfig;
 }
@@ -163,7 +164,7 @@ export async function synthesizeSpeech(
     inputLength: input.length,
     requestSizeBytes,
     speed: settings.speed,
-    voice: settings.voice,
+    voice: getEffectiveVoiceName(settings),
   });
 
   const speechConfig = createSpeechConfig(settings);

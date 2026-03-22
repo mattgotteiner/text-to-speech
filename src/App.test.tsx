@@ -89,27 +89,54 @@ describe('App', () => {
     expect(screen.getByLabelText('Message input')).toBeInTheDocument();
   });
 
-  it('offers grouped voice presets and keeps a custom voice field', async () => {
+  it('uses the voice catalog and deselects it when a manual override is entered', async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await openSettings(user);
 
-    const voicePreset = screen.getByLabelText('Voice preset');
-    const voiceName = screen.getByLabelText('Voice name');
+    const voiceOverride = screen.getByLabelText('Voice name override');
+    const adaButton = screen.getByRole('button', { name: /Ada \(UK, multilingual\)/i });
 
-    expect(screen.getByRole('option', { name: 'Ava (US, multilingual)' })).toBeInTheDocument();
-    expect(voiceName).toHaveValue('en-US-AvaMultilingualNeural');
+    expect(adaButton).toHaveAttribute('aria-pressed', 'false');
 
-    await user.selectOptions(voicePreset, 'en-GB-AdaMultilingualNeural');
-    expect(voiceName).toHaveValue('en-GB-AdaMultilingualNeural');
+    await user.click(adaButton);
 
-    fireEvent.change(voiceName, {
+    expect(adaButton).toHaveAttribute('aria-pressed', 'true');
+    expect(voiceOverride).toHaveValue('');
+
+    fireEvent.change(voiceOverride, {
       target: { value: 'fr-FR-VivienneMultilingualNeural' },
     });
 
-    expect(voicePreset).toHaveValue('__custom_voice__');
-    expect(voiceName).toHaveValue('fr-FR-VivienneMultilingualNeural');
+    expect(voiceOverride).toHaveValue('fr-FR-VivienneMultilingualNeural');
+    expect(adaButton).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('offers a searchable voice catalog with broader availability', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await openSettings(user);
+
+    const voiceSearch = screen.getByLabelText('Voice catalog');
+    const voiceOverride = screen.getByLabelText('Voice name override');
+
+    expect(screen.getByText(/showing 34 of 34 voices/i)).toBeInTheDocument();
+
+    await user.type(voiceSearch, 'xia');
+
+    const xiaoxiaoButton = screen.getByRole('button', { name: /Xiaoxiao \(China\)/i });
+    expect(xiaoxiaoButton).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ava \(US, multilingual\)/i })).not.toBeInTheDocument();
+
+    await user.click(xiaoxiaoButton);
+
+    expect(voiceOverride).toHaveValue('');
+    expect(screen.getByRole('button', { name: /Xiaoxiao \(China\)/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   it('collapses and reopens the settings sidebar', async () => {
@@ -132,6 +159,30 @@ describe('App', () => {
       screen.queryByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText('Open settings')).toBeInTheDocument();
+  });
+
+  it('persists an updated endpoint after closing and reopening settings', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await openSettings(user);
+
+    const endpointInput = screen.getByPlaceholderText(
+      'https://your-resource.cognitiveservices.azure.com',
+    );
+
+    await user.click(endpointInput);
+    await user.paste('https://example.openai.azure.com');
+
+    await user.click(screen.getByLabelText('Close settings'));
+    await openSettings(user);
+
+    expect(
+      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
+    ).toHaveValue('https://example.openai.azure.com');
+    expect(localStorage.getItem(APP_SETTINGS_STORAGE_KEY)).toContain(
+      '"endpoint":"https://example.openai.azure.com"',
+    );
   });
 
   it('generates audio from freeform text', async () => {
@@ -236,7 +287,7 @@ describe('App', () => {
 
     await openSettings(user);
 
-    await user.selectOptions(screen.getByLabelText('Voice preset'), 'en-GB-AdaMultilingualNeural');
+    await user.click(screen.getByRole('button', { name: /Ada \(UK, multilingual\)/i }));
     await user.type(
       screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
       'https://example.cognitiveservices.azure.com',
@@ -255,6 +306,36 @@ describe('App', () => {
           voice: 'en-GB-AdaMultilingualNeural',
         }),
         'Use the selected voice',
+      );
+    });
+  });
+
+  it('prefers the manual voice override when generating audio', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await openSettings(user);
+
+    await user.type(screen.getByLabelText('Voice name override'), 'fr-FR-VivienneMultilingualNeural');
+    await user.type(
+      screen.getByPlaceholderText('https://your-resource.cognitiveservices.azure.com'),
+      'https://example.cognitiveservices.azure.com',
+    );
+    await user.type(
+      screen.getByPlaceholderText('Paste your Azure Speech key'),
+      'test-key',
+    );
+    await user.type(screen.getByLabelText('Message input'), 'Use the override voice');
+
+    await user.click(screen.getByRole('button', { name: 'Generate audio' }));
+
+    await waitFor(() => {
+      expect(synthesizeSpeechMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          voice: 'en-US-AvaMultilingualNeural',
+          voiceOverride: 'fr-FR-VivienneMultilingualNeural',
+        }),
+        'Use the override voice',
       );
     });
   });

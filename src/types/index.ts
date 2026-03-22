@@ -9,15 +9,230 @@ export interface VoicePresetOption {
   value: string;
 }
 
-export const COMMON_VOICE_OPTIONS: readonly VoicePresetOption[] = [
-  { label: 'Ava (US, multilingual)', value: 'en-US-AvaMultilingualNeural' },
-  { label: 'Andrew (US, multilingual)', value: 'en-US-AndrewMultilingualNeural' },
-  { label: 'Jenny (US, multilingual)', value: 'en-US-JennyMultilingualNeural' },
-  { label: 'Ryan (US, multilingual)', value: 'en-US-RyanMultilingualNeural' },
-  { label: 'Ada (UK, multilingual)', value: 'en-GB-AdaMultilingualNeural' },
-  { label: 'Ollie (UK, multilingual)', value: 'en-GB-OllieMultilingualNeural' },
-  { label: 'William (AU, multilingual)', value: 'en-AU-WilliamMultilingualNeural' },
-] as const;
+export interface VoiceCatalogOption extends VoicePresetOption {
+  group: string;
+  locale: string;
+  featured?: boolean;
+}
+
+export const VOICE_CATALOG_OPTIONS: readonly VoiceCatalogOption[] = [
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'Ava (US, multilingual)',
+    locale: 'en-US',
+    value: 'en-US-AvaMultilingualNeural',
+  },
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'Andrew (US, multilingual)',
+    locale: 'en-US',
+    value: 'en-US-AndrewMultilingualNeural',
+  },
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'Jenny (US, multilingual)',
+    locale: 'en-US',
+    value: 'en-US-JennyMultilingualNeural',
+  },
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'Ryan (US, multilingual)',
+    locale: 'en-US',
+    value: 'en-US-RyanMultilingualNeural',
+  },
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'Ada (UK, multilingual)',
+    locale: 'en-GB',
+    value: 'en-GB-AdaMultilingualNeural',
+  },
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'Ollie (UK, multilingual)',
+    locale: 'en-GB',
+    value: 'en-GB-OllieMultilingualNeural',
+  },
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'William (Australia, multilingual)',
+    locale: 'en-AU',
+    value: 'en-AU-WilliamMultilingualNeural',
+  },
+  {
+    featured: true,
+    group: 'Featured multilingual voices',
+    label: 'Vivienne (France, multilingual)',
+    locale: 'fr-FR',
+    value: 'fr-FR-VivienneMultilingualNeural',
+  },
+  {
+    group: 'English voices',
+    label: 'Aria (US)',
+    locale: 'en-US',
+    value: 'en-US-AriaNeural',
+  },
+  {
+    group: 'English voices',
+    label: 'Jenny (US)',
+    locale: 'en-US',
+    value: 'en-US-JennyNeural',
+  },
+  {
+    group: 'English voices',
+    label: 'Guy (US)',
+    locale: 'en-US',
+    value: 'en-US-GuyNeural',
+  },
+  {
+    group: 'English voices',
+    label: 'Libby (UK)',
+    locale: 'en-GB',
+    value: 'en-GB-LibbyNeural',
+  },
+  {
+    group: 'English voices',
+    label: 'Ryan (UK)',
+    locale: 'en-GB',
+    value: 'en-GB-RyanNeural',
+  },
+  {
+    group: 'English voices',
+    label: 'Natasha (Australia)',
+    locale: 'en-AU',
+    value: 'en-AU-NatashaNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Denise (France)',
+    locale: 'fr-FR',
+    value: 'fr-FR-DeniseNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Henri (France)',
+    locale: 'fr-FR',
+    value: 'fr-FR-HenriNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Elvira (Spain)',
+    locale: 'es-ES',
+    value: 'es-ES-ElviraNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Alvaro (Spain)',
+    locale: 'es-ES',
+    value: 'es-ES-AlvaroNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Elsa (Italy)',
+    locale: 'it-IT',
+    value: 'it-IT-ElsaNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Diego (Italy)',
+    locale: 'it-IT',
+    value: 'it-IT-DiegoNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Francisca (Brazil)',
+    locale: 'pt-BR',
+    value: 'pt-BR-FranciscaNeural',
+  },
+  {
+    group: 'Romance language voices',
+    label: 'Antonio (Brazil)',
+    locale: 'pt-BR',
+    value: 'pt-BR-AntonioNeural',
+  },
+  {
+    group: 'Central European voices',
+    label: 'Katja (Germany)',
+    locale: 'de-DE',
+    value: 'de-DE-KatjaNeural',
+  },
+  {
+    group: 'Central European voices',
+    label: 'Conrad (Germany)',
+    locale: 'de-DE',
+    value: 'de-DE-ConradNeural',
+  },
+  {
+    group: 'Central European voices',
+    label: 'Colette (Netherlands)',
+    locale: 'nl-NL',
+    value: 'nl-NL-ColetteNeural',
+  },
+  {
+    group: 'Central European voices',
+    label: 'Maarten (Netherlands)',
+    locale: 'nl-NL',
+    value: 'nl-NL-MaartenNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'Nanami (Japan)',
+    locale: 'ja-JP',
+    value: 'ja-JP-NanamiNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'Keita (Japan)',
+    locale: 'ja-JP',
+    value: 'ja-JP-KeitaNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'SunHi (Korea)',
+    locale: 'ko-KR',
+    value: 'ko-KR-SunHiNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'InJoon (Korea)',
+    locale: 'ko-KR',
+    value: 'ko-KR-InJoonNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'Xiaoxiao (China)',
+    locale: 'zh-CN',
+    value: 'zh-CN-XiaoxiaoNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'Yunxi (China)',
+    locale: 'zh-CN',
+    value: 'zh-CN-YunxiNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'Swara (India)',
+    locale: 'hi-IN',
+    value: 'hi-IN-SwaraNeural',
+  },
+  {
+    group: 'Asia Pacific voices',
+    label: 'Madhur (India)',
+    locale: 'hi-IN',
+    value: 'hi-IN-MadhurNeural',
+  },
+];
+
+export const COMMON_VOICE_OPTIONS: readonly VoicePresetOption[] = VOICE_CATALOG_OPTIONS.filter(
+  ({ featured }) => featured,
+).map(({ label, value }) => ({ label, value }));
 
 export type AudioFormat = (typeof AUDIO_FORMATS)[number];
 export type Theme = (typeof THEME_OPTIONS)[number];
@@ -27,6 +242,7 @@ export interface AppSettings {
   endpoint: string;
   apiKey: string;
   voice: VoiceOption;
+  voiceOverride: VoiceOption;
   format: AudioFormat;
   speed: number;
   theme: Theme;
@@ -55,4 +271,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   speed: 1,
   theme: 'system',
   voice: 'en-US-AvaMultilingualNeural',
+  voiceOverride: '',
 };
