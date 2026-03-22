@@ -31,6 +31,7 @@ If you need stronger secret handling, place the Azure request behind a trusted p
 ## Getting started
 
 ```bash
+npm login --scope=@mattgotteiner --auth-type=legacy --registry=https://npm.pkg.github.com
 npm install
 npm run dev
 ```
@@ -50,6 +51,8 @@ Then open the local Vite URL, open settings, and enter:
 | `npm run lint` | Run ESLint |
 | `npm run test:run` | Run Vitest once |
 | `npm run typecheck` | Run TypeScript without emitting |
+
+Because the app consumes `@mattgotteiner/spa-ui-controls` from GitHub Packages, `npm login` for the `@mattgotteiner` scope is required before install unless your environment already has package read access configured.
 
 ## Local testing flow
 

@@ -1,18 +1,18 @@
 .tts-input {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spa-space-4);
 }
 
 .tts-input__header {
   align-items: flex-start;
   display: flex;
-  gap: 1rem;
+  gap: var(--spa-space-3);
   justify-content: space-between;
 }
 
 .tts-input__eyebrow {
-  color: var(--color-text-muted);
+  color: var(--spa-color-text-muted);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -21,16 +21,15 @@
 }
 
 .tts-input h2 {
-  color: var(--color-text);
   font-size: 1.2rem;
   margin: 0;
 }
 
 .tts-input__counter {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  color: var(--color-text-secondary);
+  background: var(--spa-color-surface);
+  border: 1px solid var(--spa-color-border);
+  border-radius: 999px;
+  color: var(--spa-color-text-secondary);
   font-size: 0.8rem;
   font-weight: 500;
   padding: 0.4rem 0.8rem;
@@ -38,100 +37,38 @@
 }
 
 .tts-input__counter[data-over-limit='true'] {
-  border-color: var(--color-danger);
-  color: var(--color-danger);
+  border-color: var(--spa-color-danger);
+  color: var(--spa-color-danger);
 }
 
 .tts-input__helper {
-  color: var(--color-text-secondary);
+  color: var(--spa-color-text-secondary);
   margin: 0;
 }
 
-.tts-input__label {
-  color: var(--color-text);
-  font-size: 14px;
-  font-weight: 500;
-}
-
 .tts-input__textarea {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  color: var(--color-text);
-  font: inherit;
   line-height: 1.4;
   min-height: 240px;
-  padding: 14px 18px;
   resize: vertical;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
-}
-
-.tts-input__textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-focus-ring);
-  outline: none;
-}
-
-.tts-input__textarea::placeholder {
-  color: var(--color-text-hint);
 }
 
 .tts-input__attachment-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--spa-space-3);
 }
 
 .tts-input__file-input {
   display: none;
 }
 
-.tts-input__button {
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 500;
-  padding: 0.75rem 1rem;
-}
-
-.tts-input__button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.tts-input__button--primary {
-  background-color: var(--color-primary);
-  color: #ffffff;
-}
-
-.tts-input__button--primary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
-
-.tts-input__button--secondary,
-.tts-input__button--ghost {
-  background-color: var(--color-surface-elevated);
-  color: var(--color-text);
-}
-
-.tts-input__button--secondary:hover:not(:disabled),
-.tts-input__button--ghost:hover:not(:disabled) {
-  border-color: var(--color-primary);
-}
-
-.tts-input__attachment-chip,
-.tts-input__notice,
-.tts-input__error {
+.tts-input__attachment-chip {
   align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--spa-color-surface);
+  border: 1px solid var(--spa-color-border);
+  border-radius: var(--spa-radius-md);
   display: flex;
-  gap: 0.75rem;
+  gap: var(--spa-space-3);
   justify-content: space-between;
   padding: 0.9rem 1rem;
 }
@@ -143,31 +80,24 @@
 }
 
 .tts-input__attachment-chip span {
-  color: var(--color-text-muted);
+  color: var(--spa-color-text-muted);
   font-size: 0.9rem;
 }
 
-.tts-input__attachment-chip button {
-  background: transparent;
-  border: 0;
-  color: var(--color-text);
-  cursor: pointer;
-  font: inherit;
-}
-
-.tts-input__notice {
-  color: var(--color-text-secondary);
-}
-
-.tts-input__error {
-  background: var(--color-error-bg);
-  border-color: var(--color-error-border);
-  color: var(--color-error-text);
+.tts-input__banner {
+  justify-content: flex-start;
 }
 
 @media (max-width: 600px) {
+  .tts-input__header {
+    flex-direction: column;
+  }
+
+  .tts-input__counter {
+    white-space: normal;
+  }
+
   .tts-input__textarea {
     min-height: 160px;
-    padding: 10px 14px;
   }
 }
