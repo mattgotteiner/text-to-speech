@@ -16,12 +16,13 @@ import { TtsInput } from './components/TtsInput/TtsInput';
 import { SettingsProvider, useSettingsContext } from './context/SettingsContext';
 import {
   MAX_TTS_SSML_BYTES,
+  type AuthoringMode,
   type MarkdownAttachment,
   type SpeechResult,
   type Theme,
 } from './types';
 import {
-  getSpeechRequestSizeBytes,
+  buildSpeechRequestPayload,
   synthesizeSpeech,
   toErrorMessage,
 } from './utils/api';
@@ -55,6 +56,7 @@ function AppContent(): React.ReactElement {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [result, setResult] = useState<SpeechResult | null>(null);
+  const authoringMode: AuthoringMode = 'plainText';
 
   useEffect(() => {
     return () => {
@@ -69,10 +71,11 @@ function AppContent(): React.ReactElement {
     [attachment, freeText],
   );
   const characterCount = combinedInput.length;
-  const requestSizeBytes = useMemo(
-    () => getSpeechRequestSizeBytes(settings, combinedInput),
-    [combinedInput, settings],
+  const speechRequestPayload = useMemo(
+    () => buildSpeechRequestPayload(settings, combinedInput, authoringMode),
+    [authoringMode, combinedInput, settings],
   );
+  const requestSizeBytes = speechRequestPayload.ssmlByteLength;
   const isOverCharacterLimit = requestSizeBytes > MAX_TTS_SSML_BYTES;
   const isGenerateDisabled =
     isGenerating ||
@@ -133,7 +136,7 @@ function AppContent(): React.ReactElement {
     setGenerationError(null);
 
     try {
-      const response = await synthesizeSpeech(settings, combinedInput);
+      const response = await synthesizeSpeech(settings, combinedInput, authoringMode);
       const audioUrl = URL.createObjectURL(response.blob);
 
       console.info('[text-audio] Audio URL created', {
@@ -238,6 +241,13 @@ function AppContent(): React.ReactElement {
               onInputChange={setFreeText}
               onRemoveAttachment={handleRemoveAttachment}
               requestSizeBytes={requestSizeBytes}
+              generatedSsml={speechRequestPayload.ssml}
+              ssmlContentSourceLabel={
+                attachment
+                  ? 'The text inside <prosody> comes from your message input plus the attached Markdown file.'
+                  : 'The text inside <prosody> comes from your message input.'
+              }
+              voiceName={getEffectiveVoiceName(settings)}
             />
           </Panel>
 

@@ -12,13 +12,7 @@
 .app-layout {
   display: grid;
   gap: var(--spa-space-4);
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-}
-
-@media (max-width: 960px) {
-  .app-layout {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: minmax(0, 1fr);
 }
 
 @media (max-width: 600px) {

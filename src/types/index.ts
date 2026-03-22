@@ -2,6 +2,7 @@ export const APP_SETTINGS_STORAGE_KEY = 'text-audio-settings';
 export const MAX_TTS_SSML_BYTES = 64 * 1024;
 export const MAX_MARKDOWN_FILE_BYTES = 1024 * 1024;
 export const AUDIO_FORMATS = ['mp3', 'wav', 'opus'] as const;
+export const AUTHORING_MODES = ['plainText', 'ssml'] as const;
 export const THEME_OPTIONS = ['light', 'dark', 'system'] as const;
 export const SPEECH_REGION_OPTIONS = [
   'australiaeast',
@@ -270,6 +271,7 @@ export const COMMON_VOICE_OPTIONS: readonly VoicePresetOption[] = VOICE_CATALOG_
 ).map(({ label, value }) => ({ label, value }));
 
 export type AudioFormat = (typeof AUDIO_FORMATS)[number];
+export type AuthoringMode = (typeof AUTHORING_MODES)[number];
 export type Theme = (typeof THEME_OPTIONS)[number];
 export type VoiceOption = string;
 

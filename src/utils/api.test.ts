@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, MAX_TTS_SSML_BYTES } from '../types';
 import {
   buildAudioFileName,
   buildSpeechRequest,
+  buildSpeechRequestPayload,
   getAudioMimeType,
   getSpeechRequestSizeBytes,
   getSpeechOutputFormat,
@@ -53,6 +54,21 @@ describe('api helpers', () => {
 
     expect(getSpeechRequestSizeBytes(DEFAULT_SETTINGS, 'Hello there')).toBe(
       new TextEncoder().encode(request).length,
+    );
+  });
+
+  it('builds a reusable speech payload for plain-text authoring mode', () => {
+    expect(buildSpeechRequestPayload(DEFAULT_SETTINGS, 'Hello there')).toEqual({
+      authoringMode: 'plainText',
+      ssml: buildSpeechRequest(DEFAULT_SETTINGS, 'Hello there'),
+      ssmlByteLength: new TextEncoder().encode(buildSpeechRequest(DEFAULT_SETTINGS, 'Hello there'))
+        .length,
+    });
+  });
+
+  it('throws for the raw SSML mode before phase 2 is implemented', () => {
+    expect(() => buildSpeechRequestPayload(DEFAULT_SETTINGS, 'Hello there', 'ssml')).toThrow(
+      'Raw SSML authoring mode is not implemented yet.',
     );
   });
 
