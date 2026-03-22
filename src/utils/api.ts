@@ -36,6 +36,8 @@ export interface SpeechRequestPayload {
   authoringMode: AuthoringMode;
   ssml: string;
   ssmlByteLength: number;
+  usesDocumentDefaultVoice: boolean;
+  usesExplicitVoiceTags: boolean;
 }
 
 export function normalizeSpeechRegion(region: string): string {
@@ -117,6 +119,64 @@ export function buildSpeechRequest(settings: AppSettings, input: string): string
   ].join('\n');
 }
 
+export function ssmlContainsVoiceTag(input: string): boolean {
+  return /<\s*voice(?:\s|>)/i.test(input);
+}
+
+function parseSsmlDocument(ssml: string): XMLDocument {
+  const document = new DOMParser().parseFromString(ssml, 'application/xml');
+  const parserError = document.querySelector('parsererror');
+
+  if (parserError) {
+    throw new Error(
+      `Your SSML is not well-formed XML. ${parserError.textContent?.trim() ?? 'Check that every tag is closed correctly.'}`,
+    );
+  }
+
+  return document;
+}
+
+function wrapSpeakChildrenWithDefaultVoice(document: XMLDocument, settings: AppSettings): string {
+  const root = document.documentElement;
+
+  if (root.localName !== 'speak') {
+    throw new Error('SSML mode expects a full <speak> document.');
+  }
+
+  const voiceElement = document.createElementNS(root.namespaceURI, 'voice');
+  voiceElement.setAttribute('name', getEffectiveVoiceName(settings));
+
+  while (root.firstChild) {
+    voiceElement.appendChild(root.firstChild);
+  }
+
+  root.appendChild(voiceElement);
+
+  return new XMLSerializer().serializeToString(document);
+}
+
+function buildSsmlModeRequest(settings: AppSettings, input: string): SpeechRequestPayload {
+  const trimmedInput = input.trim();
+
+  if (!trimmedInput) {
+    throw new Error('Enter a full SSML document before generating audio.');
+  }
+
+  const usesExplicitVoiceTags = ssmlContainsVoiceTag(trimmedInput);
+  const normalizedDocument = parseSsmlDocument(trimmedInput);
+  const ssml = usesExplicitVoiceTags
+    ? new XMLSerializer().serializeToString(normalizedDocument)
+    : wrapSpeakChildrenWithDefaultVoice(normalizedDocument, settings);
+
+  return {
+    authoringMode: 'ssml',
+    ssml,
+    ssmlByteLength: new TextEncoder().encode(ssml).length,
+    usesDocumentDefaultVoice: !usesExplicitVoiceTags,
+    usesExplicitVoiceTags,
+  };
+}
+
 export function buildSpeechRequestPayload(
   settings: AppSettings,
   input: string,
@@ -130,10 +190,12 @@ export function buildSpeechRequestPayload(
         authoringMode,
         ssml,
         ssmlByteLength: new TextEncoder().encode(ssml).length,
+        usesDocumentDefaultVoice: true,
+        usesExplicitVoiceTags: false,
       };
     }
     case 'ssml':
-      throw new Error('Raw SSML authoring mode is not implemented yet.');
+      return buildSsmlModeRequest(settings, input);
   }
 }
 
@@ -210,7 +272,7 @@ export async function synthesizeSpeech(
     region: normalizedRegion,
     requestSizeBytes: request.ssmlByteLength,
     speed: settings.speed,
-    voice: getEffectiveVoiceName(settings),
+    voice: request.usesExplicitVoiceTags ? 'ssml-defined' : getEffectiveVoiceName(settings),
     webSocketUrl: normalizedRegion ? getSpeechWebSocketUrl(normalizedRegion) : null,
   });
 

@@ -23,6 +23,7 @@ import {
 } from './types';
 import {
   buildSpeechRequestPayload,
+  ssmlContainsVoiceTag,
   synthesizeSpeech,
   toErrorMessage,
 } from './utils/api';
@@ -50,13 +51,14 @@ function AppContent(): React.ReactElement {
     useSettingsContext();
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [freeText, setFreeText] = useState<string>('');
+  const [ssmlText, setSsmlText] = useState<string>('');
   const [attachment, setAttachment] = useState<MarkdownAttachment | null>(null);
   const [composerMessage, setComposerMessage] = useState<string | null>(null);
   const [composerError, setComposerError] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [result, setResult] = useState<SpeechResult | null>(null);
-  const authoringMode: AuthoringMode = 'plainText';
+  const [authoringMode, setAuthoringMode] = useState<AuthoringMode>('plainText');
 
   useEffect(() => {
     return () => {
@@ -70,18 +72,48 @@ function AppContent(): React.ReactElement {
     () => buildSpeechInput(freeText, attachment),
     [attachment, freeText],
   );
-  const characterCount = combinedInput.length;
-  const speechRequestPayload = useMemo(
-    () => buildSpeechRequestPayload(settings, combinedInput, authoringMode),
-    [authoringMode, combinedInput, settings],
-  );
-  const requestSizeBytes = speechRequestPayload.ssmlByteLength;
+  const activeInput = authoringMode === 'plainText' ? combinedInput : ssmlText;
+  const characterCount = activeInput.length;
+  const speechRequestState = useMemo(() => {
+    try {
+      return {
+        error: null,
+        payload: buildSpeechRequestPayload(settings, activeInput, authoringMode),
+      };
+    } catch (error) {
+      return {
+        error: toErrorMessage(error),
+        payload: null,
+      };
+    }
+  }, [activeInput, authoringMode, settings]);
+  const speechRequestPayload = speechRequestState.payload;
+  const requestSizeBytes =
+    speechRequestPayload?.ssmlByteLength ?? new TextEncoder().encode(activeInput).length;
   const isOverCharacterLimit = requestSizeBytes > MAX_TTS_SSML_BYTES;
   const isGenerateDisabled =
     isGenerating ||
     !isConfigured ||
-    combinedInput.trim().length === 0 ||
-    isOverCharacterLimit;
+    activeInput.trim().length === 0 ||
+    isOverCharacterLimit ||
+    speechRequestPayload === null;
+  const ssmlDefinesVoice = authoringMode === 'ssml' && ssmlContainsVoiceTag(ssmlText);
+  const generatedSsml = speechRequestPayload?.ssml ?? '';
+  const ssmlSettingsSourceLabel =
+    authoringMode === 'plainText'
+      ? `The <voice> name resolves to ${getEffectiveVoiceName(settings)}, and the <prosody rate> value comes from your current speed setting.`
+      : ssmlDefinesVoice
+        ? 'Your SSML already includes one or more <voice> blocks, so the default voice selector is not injected. The speed setting is not injected in SSML mode.'
+        : `Your SSML omits <voice> blocks, so the default voice selector resolves to ${getEffectiveVoiceName(settings)} and is added as the root <voice>. The speed setting is not injected in SSML mode.`;
+  const ssmlContentSourceLabel =
+    authoringMode === 'plainText'
+      ? attachment
+        ? 'The text inside <prosody> comes from your message input plus the attached Markdown file.'
+        : 'The text inside <prosody> comes from your message input.'
+      : speechRequestPayload
+        ? 'This preview shows the exact SSML payload Azure Speech receives after any default voice wrapping is applied.'
+        : 'Fix the SSML validation error to preview the exact payload Azure Speech would receive.';
+  const activeComposerError = composerError ?? speechRequestState.error;
 
   const handleAttachFile = async (file: File | null): Promise<void> => {
     if (!file) {
@@ -113,8 +145,14 @@ function AppContent(): React.ReactElement {
     setComposerError(null);
   };
 
+  const handleClearSsml = (): void => {
+    setSsmlText('');
+    setComposerMessage(null);
+    setComposerError(null);
+  };
+
   const handleGenerate = async (): Promise<void> => {
-    if (isGenerateDisabled) {
+    if (isGenerateDisabled || !speechRequestPayload) {
       console.info('[text-audio] Generate skipped because action is disabled', {
         characterCount,
         hasConfiguration: isConfigured,
@@ -128,15 +166,17 @@ function AppContent(): React.ReactElement {
 
       console.info('[text-audio] Generate requested', {
         attachmentName: attachment?.name ?? null,
-        inputLength: combinedInput.length,
-        voice: getEffectiveVoiceName(settings),
+        inputLength: activeInput.length,
+        voice: speechRequestPayload.usesExplicitVoiceTags
+          ? 'ssml-defined'
+          : getEffectiveVoiceName(settings),
       });
 
     setIsGenerating(true);
     setGenerationError(null);
 
     try {
-      const response = await synthesizeSpeech(settings, combinedInput, authoringMode);
+      const response = await synthesizeSpeech(settings, activeInput, authoringMode);
       const audioUrl = URL.createObjectURL(response.blob);
 
       console.info('[text-audio] Audio URL created', {
@@ -152,8 +192,10 @@ function AppContent(): React.ReactElement {
         createdAt: new Date().toISOString(),
         fileName: response.fileName,
         format: settings.format,
-        input: combinedInput,
-        voice: getEffectiveVoiceName(settings),
+        input: speechRequestPayload.ssml,
+        voice: speechRequestPayload.usesExplicitVoiceTags
+          ? 'SSML-defined voices'
+          : getEffectiveVoiceName(settings),
       });
 
       console.info('[text-audio] Generate completed successfully', {
@@ -227,27 +269,29 @@ function AppContent(): React.ReactElement {
           <Panel as="section">
             <TtsInput
               attachment={attachment}
+              authoringMode={authoringMode}
               characterCount={characterCount}
-              composerError={composerError}
+              composerError={activeComposerError}
               composerMessage={composerMessage}
-              inputText={freeText}
+              generatedSsml={generatedSsml}
               isConfigured={isConfigured}
+              isGenerateDisabled={isGenerateDisabled}
               isGenerating={isGenerating}
               isOverCharacterLimit={isOverCharacterLimit}
               maxRequestBytes={MAX_TTS_SSML_BYTES}
               onAttachFile={handleAttachFile}
+              onAuthoringModeChange={setAuthoringMode}
               onClear={handleClearInput}
+              onClearSsml={handleClearSsml}
               onGenerate={handleGenerate}
               onInputChange={setFreeText}
+              onSsmlInputChange={setSsmlText}
               onRemoveAttachment={handleRemoveAttachment}
+              plainTextInput={freeText}
               requestSizeBytes={requestSizeBytes}
-              generatedSsml={speechRequestPayload.ssml}
-              ssmlContentSourceLabel={
-                attachment
-                  ? 'The text inside <prosody> comes from your message input plus the attached Markdown file.'
-                  : 'The text inside <prosody> comes from your message input.'
-              }
-              voiceName={getEffectiveVoiceName(settings)}
+              ssmlContentSourceLabel={ssmlContentSourceLabel}
+              ssmlInput={ssmlText}
+              ssmlSettingsSourceLabel={ssmlSettingsSourceLabel}
             />
           </Panel>
 
