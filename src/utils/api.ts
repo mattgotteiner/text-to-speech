@@ -6,7 +6,12 @@ import {
   type SpeechSynthesisResult,
   SpeechSynthesizer,
 } from 'microsoft-cognitiveservices-speech-sdk';
-import { MAX_TTS_SSML_BYTES, type AppSettings, type AudioFormat } from '../types';
+import {
+  MAX_TTS_SSML_BYTES,
+  type AppSettings,
+  type AudioFormat,
+  type AuthoringMode,
+} from '../types';
 import { getEffectiveVoiceName } from './voices';
 
 const AUDIO_MIME_TYPES: Record<AudioFormat, string> = {
@@ -25,6 +30,12 @@ export interface SynthesizedSpeechResponse {
   blob: Blob;
   fileName: string;
   mimeType: string;
+}
+
+export interface SpeechRequestPayload {
+  authoringMode: AuthoringMode;
+  ssml: string;
+  ssmlByteLength: number;
 }
 
 export function normalizeSpeechRegion(region: string): string {
@@ -106,12 +117,40 @@ export function buildSpeechRequest(settings: AppSettings, input: string): string
   ].join('\n');
 }
 
-export function getSpeechRequestSizeBytes(settings: AppSettings, input: string): number {
-  return new TextEncoder().encode(buildSpeechRequest(settings, input)).length;
+export function buildSpeechRequestPayload(
+  settings: AppSettings,
+  input: string,
+  authoringMode: AuthoringMode = 'plainText',
+): SpeechRequestPayload {
+  switch (authoringMode) {
+    case 'plainText': {
+      const ssml = buildSpeechRequest(settings, input);
+
+      return {
+        authoringMode,
+        ssml,
+        ssmlByteLength: new TextEncoder().encode(ssml).length,
+      };
+    }
+    case 'ssml':
+      throw new Error('Raw SSML authoring mode is not implemented yet.');
+  }
 }
 
-export function isSpeechRequestOverLimit(settings: AppSettings, input: string): boolean {
-  return getSpeechRequestSizeBytes(settings, input) > MAX_TTS_SSML_BYTES;
+export function getSpeechRequestSizeBytes(
+  settings: AppSettings,
+  input: string,
+  authoringMode: AuthoringMode = 'plainText',
+): number {
+  return buildSpeechRequestPayload(settings, input, authoringMode).ssmlByteLength;
+}
+
+export function isSpeechRequestOverLimit(
+  settings: AppSettings,
+  input: string,
+  authoringMode: AuthoringMode = 'plainText',
+): boolean {
+  return getSpeechRequestSizeBytes(settings, input, authoringMode) > MAX_TTS_SSML_BYTES;
 }
 
 export function createSpeechConfig(
@@ -152,23 +191,24 @@ function logTtsEvent(message: string, details?: Record<string, unknown>): void {
 export async function synthesizeSpeech(
   settings: AppSettings,
   input: string,
+  authoringMode: AuthoringMode = 'plainText',
 ): Promise<SynthesizedSpeechResponse> {
   const normalizedRegion = normalizeSpeechRegion(settings.region);
-  const request = buildSpeechRequest(settings, input);
-  const requestSizeBytes = new TextEncoder().encode(request).length;
+  const request = buildSpeechRequestPayload(settings, input, authoringMode);
   const startedAt = performance.now();
 
-  if (requestSizeBytes > MAX_TTS_SSML_BYTES) {
+  if (request.ssmlByteLength > MAX_TTS_SSML_BYTES) {
     throw new Error(
       `Azure Speech real-time TTS supports SSML requests up to ${MAX_TTS_SSML_BYTES.toLocaleString()} bytes.`,
     );
   }
 
   logTtsEvent('Creating Azure Speech client', {
+    authoringMode,
     format: settings.format,
     inputLength: input.length,
     region: normalizedRegion,
-    requestSizeBytes,
+    requestSizeBytes: request.ssmlByteLength,
     speed: settings.speed,
     voice: getEffectiveVoiceName(settings),
     webSocketUrl: normalizedRegion ? getSpeechWebSocketUrl(normalizedRegion) : null,
@@ -180,7 +220,7 @@ export async function synthesizeSpeech(
   logTtsEvent('Sending speech request');
   const result = await new Promise<SpeechSynthesisResult>((resolve, reject) => {
     synthesizer.speakSsmlAsync(
-      request,
+      request.ssml,
       (speechResult) => {
         synthesizer.close();
         resolve(speechResult);

@@ -87,6 +87,29 @@ describe('App', () => {
     expect(screen.queryByLabelText('Close settings')).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText('westeurope')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Message input')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Preview of the Azure Speech payload' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Generated SSML preview')).toHaveTextContent(
+      '<voice name="en-US-AvaMultilingualNeural">',
+    );
+    expect(screen.getByLabelText('Generated SSML preview')).toHaveTextContent(
+      '<prosody rate="+0%"></prosody>',
+    );
+  });
+
+  it('shows a read-only SSML preview and updates it with escaped input', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByLabelText('Message input'), 'Fish & Chips <3');
+
+    const preview = screen.getByLabelText('Generated SSML preview');
+
+    expect(screen.getByText('Read-only')).toBeInTheDocument();
+    expect(screen.getByText(/the byte counter tracks the generated ssml payload azure speech receives/i)).toBeInTheDocument();
+    expect(screen.getByText('From settings')).toBeInTheDocument();
+    expect(screen.getByText('en-US-AvaMultilingualNeural')).toBeInTheDocument();
+    expect(preview).toHaveTextContent('&amp;');
+    expect(preview).toHaveTextContent('&lt;3');
   });
 
   it('uses the voice catalog and deselects it when a manual override is entered', async () => {
@@ -227,6 +250,7 @@ describe('App', () => {
           voice: 'en-US-AvaMultilingualNeural',
         }),
         'Read this aloud',
+        'plainText',
       );
     });
 
@@ -262,6 +286,7 @@ describe('App', () => {
       expect(synthesizeSpeechMock).toHaveBeenCalledWith(
         expect.anything(),
         '# Heading\n\nMarkdown body',
+        'plainText',
       );
     });
 
@@ -313,6 +338,7 @@ describe('App', () => {
           voice: 'en-GB-AdaMultilingualNeural',
         }),
         'Use the selected voice',
+        'plainText',
       );
     });
   });
@@ -340,6 +366,7 @@ describe('App', () => {
           voiceOverride: 'fr-FR-VivienneMultilingualNeural',
         }),
         'Use the override voice',
+        'plainText',
       );
     });
   });
