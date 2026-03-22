@@ -1,7 +1,8 @@
-import { Button, FormField, ThemeToggle } from '@mattgotteiner/spa-ui-controls';
+import { Button, FormField } from '@mattgotteiner/spa-ui-controls';
 import {
   AUDIO_FORMATS,
   COMMON_VOICE_OPTIONS,
+  THEME_OPTIONS,
   type AppSettings,
 } from '../../types';
 import './SettingsPanel.css';
@@ -29,15 +30,29 @@ export function SettingsPanel({
       <section className="settings-section">
         <h3 className="settings-section__title">Appearance</h3>
 
-        <FormField
-          hint="System follows your device preference. Light and dark override it in this browser."
-          label="Theme"
-        >
-          <ThemeToggle
-            value={settings.theme}
-            onChange={(theme) => onUpdate({ theme })}
-          />
-        </FormField>
+        <div className="settings-field">
+          <span className="settings-field__label">Theme</span>
+          <div className="settings-field__radio-group">
+            {THEME_OPTIONS.map((theme) => (
+              <label key={theme} className="settings-field__radio-wrapper">
+                <input
+                  type="radio"
+                  name="theme"
+                  className="settings-field__radio"
+                  value={theme}
+                  checked={settings.theme === theme}
+                  onChange={() => onUpdate({ theme })}
+                />
+                <span className="settings-field__radio-label">
+                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                </span>
+              </label>
+            ))}
+          </div>
+          <span className="settings-field__hint">
+            System follows your device preference. Light and dark override it in this browser.
+          </span>
+        </div>
       </section>
 
       <section className="settings-section">

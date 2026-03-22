@@ -128,3 +128,23 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
+.spa-drawer__header .spa-icon-button {
+  background: none;
+  border: none;
+  border-radius: var(--spa-radius-md);
+  color: var(--spa-color-text-secondary);
+  font-size: 20px;
+  height: 44px;
+  padding: 0;
+  width: 44px;
+}
+
+.spa-drawer__header .spa-icon-button:hover:not(:disabled) {
+  background-color: var(--spa-color-surface-elevated);
+  color: var(--spa-color-text);
+}
+
+.spa-drawer--right {
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+}
