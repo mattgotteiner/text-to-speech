@@ -13,6 +13,7 @@ import {
   isSpeechRequestOverLimit,
   looksLikeUrl,
   normalizeSpeechRegion,
+  ssmlContainsVoiceTag,
 } from './api';
 
 describe('api helpers', () => {
@@ -63,13 +64,53 @@ describe('api helpers', () => {
       ssml: buildSpeechRequest(DEFAULT_SETTINGS, 'Hello there'),
       ssmlByteLength: new TextEncoder().encode(buildSpeechRequest(DEFAULT_SETTINGS, 'Hello there'))
         .length,
+      usesDocumentDefaultVoice: true,
+      usesExplicitVoiceTags: false,
     });
   });
 
-  it('throws for the raw SSML mode before phase 2 is implemented', () => {
-    expect(() => buildSpeechRequestPayload(DEFAULT_SETTINGS, 'Hello there', 'ssml')).toThrow(
-      'Raw SSML authoring mode is not implemented yet.',
+  it('detects explicit SSML voice tags', () => {
+    expect(ssmlContainsVoiceTag('<voice name="en-US-AvaMultilingualNeural">Hi</voice>')).toBe(
+      true,
     );
+    expect(ssmlContainsVoiceTag('<prosody rate="+10%">Hi</prosody>')).toBe(false);
+  });
+
+  it('preserves explicit voice tags in raw SSML mode', () => {
+    const ssml =
+      '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><voice name="en-US-GuyNeural">Hello there</voice></speak>';
+
+    expect(buildSpeechRequestPayload(DEFAULT_SETTINGS, ssml, 'ssml')).toEqual({
+      authoringMode: 'ssml',
+      ssml,
+      ssmlByteLength: new TextEncoder().encode(ssml).length,
+      usesDocumentDefaultVoice: false,
+      usesExplicitVoiceTags: true,
+    });
+  });
+
+  it('wraps SSML content in the default voice when no voice tag is present', () => {
+    const payload = buildSpeechRequestPayload(
+      DEFAULT_SETTINGS,
+      '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><p>Hello there</p></speak>',
+      'ssml',
+    );
+
+    expect(payload.authoringMode).toBe('ssml');
+    expect(payload.usesDocumentDefaultVoice).toBe(true);
+    expect(payload.usesExplicitVoiceTags).toBe(false);
+    expect(payload.ssml).toContain('<voice name="en-US-AvaMultilingualNeural">');
+    expect(payload.ssml).toContain('<p>Hello there</p>');
+  });
+
+  it('rejects malformed XML in raw SSML mode', () => {
+    expect(() =>
+      buildSpeechRequestPayload(
+        DEFAULT_SETTINGS,
+        '<speak version="1.0"><voice name="en-US-AvaMultilingualNeural">Hello',
+        'ssml',
+      ),
+    ).toThrow(/not well-formed xml/i);
   });
 
   it('flags requests that exceed the Speech SSML payload limit', () => {

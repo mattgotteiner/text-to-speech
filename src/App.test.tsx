@@ -110,7 +110,6 @@ describe('App', () => {
     expect(screen.getByText('Read-only')).toBeInTheDocument();
     expect(screen.getByText(/the byte counter tracks the generated ssml payload azure speech receives/i)).toBeInTheDocument();
     expect(screen.getByText('From settings')).toBeInTheDocument();
-    expect(screen.getByText('en-US-AvaMultilingualNeural')).toBeInTheDocument();
     expect(preview).toHaveTextContent('<voice name="en-US-AvaMultilingualNeural">');
     expect(preview).toHaveTextContent('&amp;');
     expect(preview).toHaveTextContent('&lt;3');
@@ -122,7 +121,7 @@ describe('App', () => {
 
     await openSettings(user);
 
-    const voiceOverride = screen.getByLabelText('Voice name override');
+    const voiceOverride = screen.getByLabelText('Default voice name override');
     const adaButton = screen.getByRole('button', { name: /Ada \(UK, multilingual\)/i });
 
     expect(adaButton).toHaveAttribute('aria-pressed', 'false');
@@ -146,8 +145,8 @@ describe('App', () => {
 
     await openSettings(user);
 
-    const voiceSearch = screen.getByLabelText('Voice catalog');
-    const voiceOverride = screen.getByLabelText('Voice name override');
+    const voiceSearch = screen.getByLabelText('Default voice catalog');
+    const voiceOverride = screen.getByLabelText('Default voice name override');
 
     expect(screen.getByText(/showing 34 of 34 voices/i)).toBeInTheDocument();
 
@@ -353,7 +352,10 @@ describe('App', () => {
 
     await openSettings(user);
 
-    await user.type(screen.getByLabelText('Voice name override'), 'fr-FR-VivienneMultilingualNeural');
+    await user.type(
+      screen.getByLabelText('Default voice name override'),
+      'fr-FR-VivienneMultilingualNeural',
+    );
     await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
     await user.type(
       screen.getByPlaceholderText('Paste your Azure Speech key'),
@@ -373,5 +375,93 @@ describe('App', () => {
         'plainText',
       );
     });
+  });
+
+  it('switches into SSML authoring mode and hides the Markdown workflow', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'SSML' }));
+
+    expect(screen.getByLabelText('SSML input')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Message input')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Attach Markdown' })).not.toBeInTheDocument();
+    expect(screen.getByText(/attach markdown is available only in plain-text mode/i)).toBeInTheDocument();
+  });
+
+  it('wraps raw SSML in the default voice when no voice tag is present', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'SSML' }));
+    fireEvent.change(screen.getByLabelText('SSML input'), {
+      target: {
+        value:
+          '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><p>Hello there</p></speak>',
+      },
+    });
+    await user.click(screen.getByRole('tab', { name: 'Generated SSML' }));
+
+    const preview = screen.getByLabelText('Generated SSML preview');
+    expect(preview).toHaveTextContent('<voice name="en-US-AvaMultilingualNeural">');
+    expect(screen.getByText(/default voice selector resolves to en-us-avamultilingualneural/i)).toBeInTheDocument();
+  });
+
+  it('passes raw SSML through when explicit voice tags are present', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await openSettings(user);
+
+    await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
+    await user.type(
+      screen.getByPlaceholderText('Paste your Azure Speech key'),
+      'test-key',
+    );
+    await user.click(screen.getByRole('button', { name: 'SSML' }));
+
+    const authoredSsml =
+      '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><voice name="en-US-GuyNeural">Hello there</voice></speak>';
+
+    fireEvent.change(screen.getByLabelText('SSML input'), {
+      target: { value: authoredSsml },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Generate audio' }));
+
+    await waitFor(() => {
+      expect(synthesizeSpeechMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          apiKey: 'test-key',
+          region: 'westeurope',
+        }),
+        authoredSsml,
+        'ssml',
+      );
+    });
+  });
+
+  it('surfaces malformed SSML errors and disables generation', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await openSettings(user);
+
+    await user.type(screen.getByPlaceholderText('westeurope'), 'westeurope');
+    await user.type(
+      screen.getByPlaceholderText('Paste your Azure Speech key'),
+      'test-key',
+    );
+    await user.click(screen.getByRole('button', { name: 'SSML' }));
+
+    fireEvent.change(screen.getByLabelText('SSML input'), {
+      target: {
+        value:
+          '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis"><voice name="en-US-AvaMultilingualNeural">Hello',
+      },
+    });
+
+    expect(screen.getByText(/your ssml is not well-formed xml/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Generate audio' })).toBeDisabled();
   });
 });

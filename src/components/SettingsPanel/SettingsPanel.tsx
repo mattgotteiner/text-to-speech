@@ -137,9 +137,9 @@ export function SettingsPanel({
         <h3 className="settings-section__title">Audio</h3>
 
         <FormField
-          hint={`Prefix search across labels, locales, and Azure voice names. Showing ${matchedCatalogVoices.length} of ${VOICE_CATALOG_OPTIONS.length} voices.`}
+          hint={`Prefix search across labels, locales, and Azure voice names. This default voice is used for plain-text mode and for SSML documents that do not declare their own <voice> tags. Showing ${matchedCatalogVoices.length} of ${VOICE_CATALOG_OPTIONS.length} voices.`}
           htmlFor="settings-voice-search"
-          label="Voice catalog"
+          label="Default voice catalog"
         >
           <div className="settings-voice-catalog">
             <input
@@ -193,9 +193,9 @@ export function SettingsPanel({
         </FormField>
 
         <FormField
-          hint="Optional override. When this has a value, the catalog selection is deselected and the specified voice name is used."
+          hint="Optional default override. When this has a value, the catalog selection is deselected and the specified voice name is used for plain-text mode and for SSML documents that omit <voice> tags."
           htmlFor="settings-voice-name"
-          label="Voice name override"
+          label="Default voice name override"
         >
           <input
             id="settings-voice-name"
