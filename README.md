@@ -17,8 +17,10 @@ This scaffold intentionally mirrors the browser-direct setup used by `responses-
 That means:
 
 - your Azure Speech API key is entered in the browser
-- settings are persisted in localStorage on your machine
+- non-secret settings are persisted in localStorage, and the API key is encrypted before it is written there
 - this is not the right security posture for a hardened production deployment
+
+The browser-managed encryption key is kept outside localStorage, which helps against casual inspection of browser storage but is still not equivalent to a backend secret store.
 
 If you need stronger secret handling, place the Azure request behind a trusted proxy or backend.
 

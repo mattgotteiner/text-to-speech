@@ -51,6 +51,10 @@
   margin: 0;
 }
 
+.settings-section__notice--warning {
+  color: var(--spa-color-warning);
+}
+
 .settings-field {
   display: flex;
   flex-direction: column;

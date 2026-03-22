@@ -8,6 +8,7 @@ interface SettingsSidebarProps {
   onClose: () => void;
   onReset: () => void;
   onUpdate: (updates: Partial<AppSettings>) => void;
+  persistenceMessage: string | null;
   settings: AppSettings;
 }
 
@@ -16,6 +17,7 @@ export function SettingsSidebar({
   onClose,
   onReset,
   onUpdate,
+  persistenceMessage,
   settings,
 }: SettingsSidebarProps): React.ReactElement {
   useEffect(() => {
@@ -73,6 +75,7 @@ export function SettingsSidebar({
           <SettingsPanel
             onReset={onReset}
             onUpdate={onUpdate}
+            persistenceMessage={persistenceMessage}
             settings={settings}
           />
         </div>
