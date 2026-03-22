@@ -6,7 +6,7 @@ A Vite + React + TypeScript SPA for experimenting locally with Azure Speech text
 
 - Accepts freeform text input
 - Accepts a local Markdown (`.md`) file and merges its contents into the synthesis input
-- Lets you configure an Azure Speech endpoint, API key, a common-voices preset dropdown with custom voice entry, output format, and playback speed
+- Lets you configure an Azure Speech region, API key, a common-voices preset dropdown with custom voice entry, output format, and playback speed
 - Plays generated audio directly in the browser with native seek/play controls
 - Provides a download action for the generated clip
 
@@ -26,7 +26,7 @@ If you need stronger secret handling, place the Azure request behind a trusted p
 
 - Node.js 22+
 - An Azure Speech resource
-- Azure Speech endpoint and API key
+- Azure Speech region and API key
 
 ## Getting started
 
@@ -38,7 +38,7 @@ npm run dev
 
 Then open the local Vite URL, open settings, and enter:
 
-- your Azure Speech endpoint
+- your Azure Speech region (for example `westeurope` or `eastus`)
 - your API key
 
 ## Available scripts
@@ -66,4 +66,5 @@ Because the app consumes `@mattgotteiner/spa-ui-controls` from GitHub Packages, 
 
 - The app validates against Azure Speech's documented 64 KB real-time SSML request limit, so the composer shows both raw character count and encoded payload size
 - This app uses the `microsoft-cognitiveservices-speech-sdk` package directly in the browser and converts the returned `audioData` into a downloadable `Blob`
+- If you previously used the endpoint-based setup, reopen settings and add your Azure Speech region before generating audio
 - If you previously used the Azure OpenAI flow, reset settings once so the app clears the old localStorage schema

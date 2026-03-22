@@ -35,7 +35,7 @@ describe('useSettings', () => {
     act(() => {
       result.current.updateSettings({
         apiKey: ' speech-key ',
-        endpoint: ' https://example.cognitiveservices.azure.com/ ',
+        region: ' WestEurope ',
         speed: 9,
         voice: ' en-US-JennyNeural ',
         voiceOverride: ' fr-FR-VivienneMultilingualNeural ',
@@ -43,7 +43,7 @@ describe('useSettings', () => {
     });
 
     expect(result.current.settings.apiKey).toBe('speech-key');
-    expect(result.current.settings.endpoint).toBe('https://example.cognitiveservices.azure.com/');
+    expect(result.current.settings.region).toBe('westeurope');
     expect(result.current.settings.speed).toBe(2);
     expect(result.current.settings.theme).toBe('system');
     expect(result.current.settings.voice).toBe('en-US-JennyNeural');
@@ -56,8 +56,8 @@ describe('useSettings', () => {
       APP_SETTINGS_STORAGE_KEY,
       JSON.stringify({
         apiKey: 'speech-key',
-        endpoint: 'https://example.cognitiveservices.azure.com/',
         format: 'mp3',
+        region: 'eastus',
         speed: 1,
         voice: 'en-US-AvaMultilingualNeural',
       }),
@@ -67,22 +67,39 @@ describe('useSettings', () => {
 
     expect(result.current.settings.theme).toBe('system');
     expect(localStorage.getItem(APP_SETTINGS_STORAGE_KEY)).toBe(
-        JSON.stringify({ ...DEFAULT_SETTINGS, apiKey: 'speech-key', endpoint: 'https://example.cognitiveservices.azure.com/' }),
-      );
+      JSON.stringify({ ...DEFAULT_SETTINGS, apiKey: 'speech-key', region: 'eastus' }),
+    );
   });
 
-  it('preserves stored endpoints when there are no legacy OpenAI-only fields', () => {
+  it('migrates stored regional speech endpoints into the region field', () => {
     localStorage.setItem(
       APP_SETTINGS_STORAGE_KEY,
       JSON.stringify({
         ...DEFAULT_SETTINGS,
-        endpoint: 'https://example.openai.azure.com',
+        endpoint: 'https://westeurope.tts.speech.microsoft.com/cognitiveservices/v1',
       }),
     );
 
     const { result } = renderHook(() => useSettings());
 
-    expect(result.current.settings.endpoint).toBe('https://example.openai.azure.com');
+    expect(result.current.settings.region).toBe('westeurope');
+  });
+
+  it('leaves region empty when a saved endpoint does not encode it', () => {
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        ...DEFAULT_SETTINGS,
+        apiKey: 'speech-key',
+        endpoint: 'https://example.cognitiveservices.azure.com/',
+      }),
+    );
+
+    const { result } = renderHook(() => useSettings());
+
+    expect(result.current.settings.region).toBe('');
+    expect(result.current.settings.apiKey).toBe('speech-key');
+    expect(result.current.isConfigured).toBe(false);
   });
 
   it('migrates a previously saved custom voice into the override field', () => {

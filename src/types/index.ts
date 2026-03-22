@@ -3,6 +3,41 @@ export const MAX_TTS_SSML_BYTES = 64 * 1024;
 export const MAX_MARKDOWN_FILE_BYTES = 1024 * 1024;
 export const AUDIO_FORMATS = ['mp3', 'wav', 'opus'] as const;
 export const THEME_OPTIONS = ['light', 'dark', 'system'] as const;
+export const SPEECH_REGION_OPTIONS = [
+  'australiaeast',
+  'brazilsouth',
+  'canadacentral',
+  'canadaeast',
+  'centralindia',
+  'centralus',
+  'eastasia',
+  'eastus',
+  'eastus2',
+  'francecentral',
+  'germanywestcentral',
+  'italynorth',
+  'japaneast',
+  'japanwest',
+  'koreacentral',
+  'northcentralus',
+  'northeurope',
+  'norwayeast',
+  'qatarcentral',
+  'southafricanorth',
+  'southcentralus',
+  'southeastasia',
+  'swedencentral',
+  'switzerlandnorth',
+  'switzerlandwest',
+  'uaenorth',
+  'uksouth',
+  'ukwest',
+  'westcentralus',
+  'westeurope',
+  'westus',
+  'westus2',
+  'westus3',
+] as const;
 
 export interface VoicePresetOption {
   label: string;
@@ -239,8 +274,8 @@ export type Theme = (typeof THEME_OPTIONS)[number];
 export type VoiceOption = string;
 
 export interface AppSettings {
-  endpoint: string;
   apiKey: string;
+  region: string;
   voice: VoiceOption;
   voiceOverride: VoiceOption;
   format: AudioFormat;
@@ -266,8 +301,8 @@ export interface SpeechResult {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   apiKey: '',
-  endpoint: '',
   format: 'mp3',
+  region: '',
   speed: 1,
   theme: 'system',
   voice: 'en-US-AvaMultilingualNeural',

@@ -125,7 +125,7 @@ export function TtsInput({
 
       {!isConfigured && (
         <Banner className="tts-input__banner" tone="info">
-          Add your Azure Speech endpoint and API key in settings before generating audio.
+          Add your Azure Speech region and API key in settings before generating audio.
         </Banner>
       )}
 
