@@ -7,6 +7,7 @@ import {
   getAudioMimeType,
   getSpeechRequestSizeBytes,
   getSpeechOutputFormat,
+  isLegacyOpenAiEndpoint,
   isSpeechRequestOverLimit,
   normalizeSpeechEndpoint,
 } from './api';
@@ -22,6 +23,10 @@ describe('api helpers', () => {
     expect(normalizeSpeechEndpoint('https://example.cognitiveservices.azure.com/custom/')).toBe(
       'https://example.cognitiveservices.azure.com/custom',
     );
+  });
+
+  it('detects legacy Azure OpenAI endpoints', () => {
+    expect(isLegacyOpenAiEndpoint('https://example.openai.azure.com')).toBe(true);
   });
 
   it('builds SSML from settings', () => {
@@ -64,4 +69,19 @@ describe('api helpers', () => {
       /^tts-en-US-AvaMultilingualNeural-.*\.mp3$/,
     );
   });
+
+  it('uses the override voice when building SSML and file names', () => {
+    const settingsWithOverride = {
+      ...DEFAULT_SETTINGS,
+      voiceOverride: 'fr-FR-VivienneMultilingualNeural',
+    };
+
+    expect(buildSpeechRequest(settingsWithOverride, 'Bonjour')).toContain(
+      '<voice name="fr-FR-VivienneMultilingualNeural">',
+    );
+    expect(buildAudioFileName(settingsWithOverride)).toMatch(
+      /^tts-fr-FR-VivienneMultilingualNeural-.*\.mp3$/,
+    );
+  });
+
 });
