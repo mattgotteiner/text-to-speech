@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { APP_SETTINGS_STORAGE_KEY, DEFAULT_SETTINGS } from './types';
+import { encryptValue } from './utils/secureStorage';
 import { synthesizeSpeech } from './utils/api';
 
 vi.mock('./utils/api', async () => {
@@ -169,6 +170,37 @@ describe('App', () => {
 
     expect(screen.getByPlaceholderText('westeurope')).toHaveValue('westeurope');
     expect(localStorage.getItem(APP_SETTINGS_STORAGE_KEY)).toContain('"region":"westeurope"');
+  });
+
+  it('asks for the API key again when the saved encrypted key cannot be unlocked', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const encryptedApiKey = await encryptValue('test-key');
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.deleteDatabase('text-audio-secure-storage');
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        ...DEFAULT_SETTINGS,
+        apiKey: '',
+        encryptedApiKey,
+        region: 'westeurope',
+      }),
+    );
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await openSettings(user);
+
+    expect(
+      screen.getByText(/saved api key could not be unlocked in this browser/i),
+    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Paste your Azure Speech key')).toHaveValue('');
+    expect(consoleErrorSpy).toHaveBeenCalled();
   });
 
   it('generates audio from freeform text', async () => {

@@ -15,6 +15,7 @@ interface SettingsPanelProps {
   settings: AppSettings;
   onUpdate: (updates: Partial<AppSettings>) => void;
   onReset: () => void;
+  persistenceMessage: string | null;
 }
 
 function groupCatalogVoices(
@@ -40,6 +41,7 @@ export function SettingsPanel({
   settings,
   onUpdate,
   onReset,
+  persistenceMessage,
 }: SettingsPanelProps): React.ReactElement {
   const [voiceSearch, setVoiceSearch] = useState<string>('');
 
@@ -119,8 +121,15 @@ export function SettingsPanel({
           />
         </FormField>
 
+        {persistenceMessage && (
+          <p className="settings-section__notice settings-section__notice--warning" role="alert">
+            {persistenceMessage}
+          </p>
+        )}
+
         <p className="settings-section__notice">
-          This browser-direct scaffold stores your key and region locally for dev/test use.
+          This browser-direct scaffold encrypts your API key before writing it to localStorage and
+          keeps the browser-managed encryption key outside localStorage for dev/test use.
         </p>
       </section>
 

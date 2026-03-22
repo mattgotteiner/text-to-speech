@@ -45,7 +45,8 @@ function ThemeSettingsSync({ theme }: ThemeSettingsSyncProps): React.ReactElemen
 }
 
 function AppContent(): React.ReactElement {
-  const { settings, updateSettings, resetSettings, isConfigured } = useSettingsContext();
+  const { settings, updateSettings, resetSettings, isConfigured, persistenceMessage } =
+    useSettingsContext();
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [freeText, setFreeText] = useState<string>('');
   const [attachment, setAttachment] = useState<MarkdownAttachment | null>(null);
@@ -257,6 +258,7 @@ function AppContent(): React.ReactElement {
           onClose={() => setIsSettingsOpen(false)}
           onReset={handleResetSettings}
           onUpdate={updateSettings}
+          persistenceMessage={persistenceMessage}
           settings={settings}
         />
       </AppShell>

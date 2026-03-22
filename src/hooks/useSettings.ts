@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   APP_SETTINGS_STORAGE_KEY,
   AUDIO_FORMATS,
@@ -10,11 +10,20 @@ import {
   THEME_OPTIONS,
 } from '../types';
 import { getStoredValue, setStoredValue } from '../utils/localStorage';
+import {
+  API_KEY_UNLOCK_ERROR_MESSAGE,
+  decryptValue,
+  encryptValue,
+  isEncryptedValue,
+  type EncryptedValue,
+} from '../utils/secureStorage';
 import { findVoiceCatalogOption } from '../utils/voices';
 
 const MIN_SPEECH_SPEED = 0.5;
 const MAX_SPEECH_SPEED = 2;
 const KNOWN_SPEECH_REGIONS = new Set<string>(SPEECH_REGION_OPTIONS);
+const API_KEY_PERSISTENCE_ERROR_MESSAGE =
+  'This browser could not securely persist your API key. It will stay available only until you refresh.';
 
 function clampSpeed(speed: number): number {
   if (Number.isNaN(speed)) {
@@ -82,12 +91,38 @@ function normalizeSettings(settings: AppSettings): AppSettings {
   };
 }
 
-function hydrateSettings(value: unknown): AppSettings {
+interface PersistedSettings {
+  apiKey?: string;
+  encryptedApiKey?: EncryptedValue;
+  format?: unknown;
+  region?: unknown;
+  speed?: unknown;
+  theme?: unknown;
+  voice?: unknown;
+  voiceOverride?: unknown;
+}
+
+interface SettingsSnapshot {
+  encryptedApiKey: EncryptedValue | null;
+  settings: AppSettings;
+}
+
+function getPersistedSettingsSnapshot(value: unknown): SettingsSnapshot {
   if (!isRecord(value) || isLegacyOpenAiSettings(value)) {
-    return DEFAULT_SETTINGS;
+    return {
+      encryptedApiKey: null,
+      settings: DEFAULT_SETTINGS,
+    };
   }
 
-  const apiKey = typeof value.apiKey === 'string' ? value.apiKey : DEFAULT_SETTINGS.apiKey;
+  const persistedSettings = value as PersistedSettings;
+  const encryptedApiKey = isEncryptedValue(persistedSettings.encryptedApiKey)
+    ? persistedSettings.encryptedApiKey
+    : null;
+  const apiKey =
+    encryptedApiKey === null && typeof persistedSettings.apiKey === 'string'
+      ? persistedSettings.apiKey
+      : DEFAULT_SETTINGS.apiKey;
   const legacyEndpoint = typeof value.endpoint === 'string' ? value.endpoint : '';
   const region =
     typeof value.region === 'string' && value.region.trim().length > 0
@@ -114,15 +149,39 @@ function hydrateSettings(value: unknown): AppSettings {
       ? normalizedStoredVoice
       : DEFAULT_SETTINGS.voiceOverride);
 
-  return normalizeSettings({
-    apiKey,
-    format,
-    region,
-    speed,
-    theme,
-    voice: catalogVoice,
-    voiceOverride: normalizedVoiceOverride,
-  });
+  return {
+    encryptedApiKey,
+    settings: normalizeSettings({
+      apiKey,
+      format,
+      region,
+      speed,
+      theme,
+      voice: catalogVoice,
+      voiceOverride: normalizedVoiceOverride,
+    }),
+  };
+}
+
+async function buildPersistedSettings(settings: AppSettings): Promise<AppSettings & {
+  encryptedApiKey?: EncryptedValue;
+}> {
+  if (settings.apiKey.length === 0) {
+    return settings;
+  }
+
+  return {
+    ...settings,
+    apiKey: '',
+    encryptedApiKey: await encryptValue(settings.apiKey),
+  };
+}
+
+function buildPersistedSettingsWithoutApiKey(settings: AppSettings): AppSettings {
+  return {
+    ...settings,
+    apiKey: '',
+  };
 }
 
 export interface UseSettingsReturn {
@@ -130,14 +189,91 @@ export interface UseSettingsReturn {
   updateSettings: (updates: Partial<AppSettings>) => void;
   resetSettings: () => void;
   isConfigured: boolean;
+  persistenceMessage: string | null;
 }
 
 export function useSettings(): UseSettingsReturn {
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const normalizedSettings = hydrateSettings(getStoredValue<unknown>(APP_SETTINGS_STORAGE_KEY, null));
-    setStoredValue(APP_SETTINGS_STORAGE_KEY, normalizedSettings);
-    return normalizedSettings;
-  });
+  const [{ encryptedApiKey: initialEncryptedApiKey, settings: initialSettings }] = useState<SettingsSnapshot>(
+    () => getPersistedSettingsSnapshot(getStoredValue<unknown>(APP_SETTINGS_STORAGE_KEY, null)),
+  );
+  const [settings, setSettings] = useState<AppSettings>(initialSettings);
+  const [pendingEncryptedApiKey, setPendingEncryptedApiKey] = useState<EncryptedValue | null>(
+    initialEncryptedApiKey,
+  );
+  const [persistenceMessage, setPersistenceMessage] = useState<string | null>(null);
+  const [hasUnlockFailure, setHasUnlockFailure] = useState<boolean>(false);
+  const [isPersistenceReady, setIsPersistenceReady] = useState<boolean>(initialEncryptedApiKey === null);
+
+  useEffect(() => {
+    if (pendingEncryptedApiKey === null) {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    void decryptValue(pendingEncryptedApiKey)
+      .then((apiKey) => {
+        if (isCancelled) {
+          return;
+        }
+
+        setSettings((currentSettings) =>
+          normalizeSettings({
+            ...currentSettings,
+            apiKey,
+          }),
+        );
+        setHasUnlockFailure(false);
+      })
+      .catch((error) => {
+        if (isCancelled) {
+          return;
+        }
+
+        console.error('Failed to unlock the saved API key.', error);
+        setPersistenceMessage(API_KEY_UNLOCK_ERROR_MESSAGE);
+        setHasUnlockFailure(true);
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsPersistenceReady(true);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [pendingEncryptedApiKey]);
+
+  useEffect(() => {
+    if (!isPersistenceReady || hasUnlockFailure) {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    void buildPersistedSettings(settings)
+      .then((persistedSettings) => {
+        if (isCancelled) {
+          return;
+        }
+
+        setStoredValue(APP_SETTINGS_STORAGE_KEY, persistedSettings);
+      })
+      .catch((error) => {
+        if (isCancelled) {
+          return;
+        }
+
+        console.error('Failed to securely persist the API key.', error);
+        setStoredValue(APP_SETTINGS_STORAGE_KEY, buildPersistedSettingsWithoutApiKey(settings));
+        setPersistenceMessage(API_KEY_PERSISTENCE_ERROR_MESSAGE);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [hasUnlockFailure, isPersistenceReady, settings]);
 
   const updateSettings = useCallback((updates: Partial<AppSettings>): void => {
     setSettings((currentSettings) => {
@@ -146,14 +282,22 @@ export function useSettings(): UseSettingsReturn {
         ...updates,
       });
 
-      setStoredValue(APP_SETTINGS_STORAGE_KEY, nextSettings);
-
       return nextSettings;
     });
+
+    if (typeof updates.apiKey === 'string') {
+      setPendingEncryptedApiKey(null);
+      setHasUnlockFailure(false);
+      setIsPersistenceReady(true);
+      setPersistenceMessage(null);
+    }
   }, []);
 
   const resetSettings = useCallback((): void => {
-    setStoredValue(APP_SETTINGS_STORAGE_KEY, DEFAULT_SETTINGS);
+    setPendingEncryptedApiKey(null);
+    setHasUnlockFailure(false);
+    setIsPersistenceReady(true);
+    setPersistenceMessage(null);
     setSettings(DEFAULT_SETTINGS);
   }, []);
 
@@ -166,6 +310,7 @@ export function useSettings(): UseSettingsReturn {
 
   return {
     isConfigured,
+    persistenceMessage,
     resetSettings,
     settings,
     updateSettings,
