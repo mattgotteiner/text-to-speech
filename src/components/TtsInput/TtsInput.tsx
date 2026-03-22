@@ -75,6 +75,8 @@ export function TtsInput({
     event.target.value = '';
   };
 
+  const showGeneratedSsmlPreview = authoringMode === 'plainText' && activeTab === 'generatedSsml';
+
   return (
     <div className="tts-input">
       <div className="tts-input__header">
@@ -113,111 +115,34 @@ export function TtsInput({
         </button>
       </div>
 
-      <div className="tts-input__tabs" role="tablist" aria-label="Composer views">
-        <button
-          id="tts-input-compose-tab"
-          type="button"
-          role="tab"
-          className="tts-input__tab"
-          aria-selected={activeTab === 'compose'}
-          aria-controls="tts-input-compose-panel"
-          onClick={() => setActiveTab('compose')}
-        >
-          Compose
-        </button>
-        <button
-          id="tts-input-ssml-tab"
-          type="button"
-          role="tab"
-          className="tts-input__tab"
-          aria-selected={activeTab === 'generatedSsml'}
-          aria-controls="tts-input-ssml-panel"
-          onClick={() => setActiveTab('generatedSsml')}
-        >
-          Generated SSML
-        </button>
-      </div>
-
-      {activeTab === 'compose' ? (
-        <div
-          id="tts-input-compose-panel"
-          className="tts-input__tab-panel"
-          role="tabpanel"
-          aria-labelledby="tts-input-compose-tab"
-        >
-          {authoringMode === 'plainText' ? (
-            <>
-              <FormField htmlFor="tts-input-textarea" label="Message input">
-                <textarea
-                  id="tts-input-textarea"
-                  className="tts-input__textarea"
-                  aria-label="Message input"
-                  placeholder="Type or paste the text you want to hear."
-                  rows={12}
-                  value={plainTextInput}
-                  onChange={handleChange}
-                />
-              </FormField>
-
-              <div className="tts-input__attachment-row">
-                <input
-                  ref={fileInputRef}
-                  className="tts-input__file-input"
-                  type="file"
-                  accept=".md,text/markdown"
-                  aria-label="Attach Markdown"
-                  onChange={(event) => {
-                    void handleFileChange(event);
-                  }}
-                />
-                <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
-                  Attach Markdown
-                </Button>
-                <Button variant="ghost" onClick={onClear}>
-                  Clear input
-                </Button>
-              </div>
-
-              {attachment && (
-                <div className="tts-input__attachment-chip">
-                  <div>
-                    <strong>{attachment.name}</strong>
-                    <span>{attachment.size.toLocaleString()} bytes</span>
-                  </div>
-                  <Button size="sm" variant="ghost" onClick={onRemoveAttachment}>
-                    Remove
-                  </Button>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <FormField htmlFor="tts-input-ssml-textarea" label="SSML input">
-                <textarea
-                  id="tts-input-ssml-textarea"
-                  className="tts-input__textarea tts-input__textarea--code"
-                  aria-label="SSML input"
-                  placeholder={'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">\n  <voice name="en-US-AvaMultilingualNeural">Hello world.</voice>\n</speak>'}
-                  rows={14}
-                  spellCheck={false}
-                  value={ssmlInput}
-                  onChange={handleSsmlChange}
-                />
-              </FormField>
-
-              <Banner className="tts-input__banner" tone="info">
-                Attach Markdown is available only in plain-text mode. In SSML mode, author the full
-                <code> &lt;speak&gt; </code>
-                document directly.
-              </Banner>
-
-              <Button variant="ghost" onClick={onClearSsml}>
-                Clear SSML
-              </Button>
-            </>
-          )}
+      {authoringMode === 'plainText' && (
+        <div className="tts-input__tabs" role="tablist" aria-label="Composer views">
+          <button
+            id="tts-input-compose-tab"
+            type="button"
+            role="tab"
+            className="tts-input__tab"
+            aria-selected={activeTab === 'compose'}
+            aria-controls="tts-input-compose-panel"
+            onClick={() => setActiveTab('compose')}
+          >
+            Compose
+          </button>
+          <button
+            id="tts-input-ssml-tab"
+            type="button"
+            role="tab"
+            className="tts-input__tab"
+            aria-selected={activeTab === 'generatedSsml'}
+            aria-controls="tts-input-ssml-panel"
+            onClick={() => setActiveTab('generatedSsml')}
+          >
+            Generated SSML
+          </button>
         </div>
-      ) : (
+      )}
+
+      {showGeneratedSsmlPreview ? (
         <section
           id="tts-input-ssml-panel"
           className="tts-input__tab-panel tts-input__ssml-preview"
@@ -258,6 +183,75 @@ export function TtsInput({
             </Banner>
           )}
         </section>
+      ) : authoringMode === 'plainText' ? (
+        <div
+          id="tts-input-compose-panel"
+          className="tts-input__tab-panel"
+          role="tabpanel"
+          aria-labelledby="tts-input-compose-tab"
+        >
+          <FormField htmlFor="tts-input-textarea" label="Message input">
+            <textarea
+              id="tts-input-textarea"
+              className="tts-input__textarea"
+              aria-label="Message input"
+              placeholder="Type or paste the text you want to hear."
+              rows={12}
+              value={plainTextInput}
+              onChange={handleChange}
+            />
+          </FormField>
+
+          <div className="tts-input__attachment-row">
+            <input
+              ref={fileInputRef}
+              className="tts-input__file-input"
+              type="file"
+              accept=".md,text/markdown"
+              aria-label="Attach Markdown"
+              onChange={(event) => {
+                void handleFileChange(event);
+              }}
+            />
+            <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
+              Attach Markdown
+            </Button>
+            <Button variant="ghost" onClick={onClear}>
+              Clear input
+            </Button>
+          </div>
+
+          {attachment && (
+            <div className="tts-input__attachment-chip">
+              <div>
+                <strong>{attachment.name}</strong>
+                <span>{attachment.size.toLocaleString()} bytes</span>
+              </div>
+              <Button size="sm" variant="ghost" onClick={onRemoveAttachment}>
+                Remove
+              </Button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="tts-input__tab-panel">
+          <FormField htmlFor="tts-input-ssml-textarea" label="SSML input">
+            <textarea
+              id="tts-input-ssml-textarea"
+              className="tts-input__textarea tts-input__textarea--code"
+              aria-label="SSML input"
+              placeholder={'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">\n  <voice name="en-US-AvaMultilingualNeural">Hello world.</voice>\n</speak>'}
+              rows={14}
+              spellCheck={false}
+              value={ssmlInput}
+              onChange={handleSsmlChange}
+            />
+          </FormField>
+
+          <Button variant="ghost" onClick={onClearSsml}>
+            Clear SSML
+          </Button>
+        </div>
       )}
 
       {composerMessage && (

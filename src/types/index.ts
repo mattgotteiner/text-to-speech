@@ -297,7 +297,6 @@ export interface SpeechResult {
   createdAt: string;
   fileName: string;
   format: AudioFormat;
-  input: string;
   voice: VoiceOption;
 }
 

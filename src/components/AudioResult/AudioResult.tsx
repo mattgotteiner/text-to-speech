@@ -49,10 +49,8 @@ export function AudioResult({
           </Banner>
         )}
       </div>
-    );
+      );
   }
-
-  const excerpt = result.input.length > 320 ? `${result.input.slice(0, 320)}…` : result.input;
 
   return (
     <div className="audio-result">
@@ -98,11 +96,6 @@ export function AudioResult({
           <dd>{new Date(result.createdAt).toLocaleString()}</dd>
         </div>
       </dl>
-
-      <div className="audio-result__excerpt">
-        <h3>Source excerpt</h3>
-        <pre>{excerpt}</pre>
-      </div>
     </div>
   );
 }

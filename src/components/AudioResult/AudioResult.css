@@ -66,18 +66,3 @@
   font-weight: 600;
   margin: 0.2rem 0 0;
 }
-
-.audio-result__excerpt {
-  background: var(--spa-color-surface);
-  border: 1px solid var(--spa-color-border);
-  border-radius: var(--spa-radius-md);
-  padding: 1rem;
-}
-
-.audio-result__excerpt pre {
-  font-family: inherit;
-  margin: 0.75rem 0 0;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-}

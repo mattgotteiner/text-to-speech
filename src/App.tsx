@@ -192,7 +192,6 @@ function AppContent(): React.ReactElement {
         createdAt: new Date().toISOString(),
         fileName: response.fileName,
         format: settings.format,
-        input: speechRequestPayload.ssml,
         voice: speechRequestPayload.usesExplicitVoiceTags
           ? 'SSML-defined voices'
           : getEffectiveVoiceName(settings),
