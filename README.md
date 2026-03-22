@@ -67,6 +67,8 @@ Because the app consumes `@mattgotteiner/spa-ui-controls` from GitHub Packages, 
 ## Notes
 
 - The app validates against Azure Speech's documented 64 KB real-time SSML request limit, so the composer shows both raw character count and encoded payload size
+- Azure Speech real-time text-to-speech also has a separate hard limit of 10 minutes of audio produced per request. If a request stays under the SSML byte cap but would synthesize to more than 10 minutes of audio, Azure can fail with an error such as `The processed audio has exceeded the configured maximum media duration of 600000ms`.
+- Longer content is a known limitation of the current browser-direct workflow. Supporting it would require additional work such as splitting synthesis into smaller requests and merging the results, or moving long-form jobs to Azure Batch Synthesis.
 - This app uses the `microsoft-cognitiveservices-speech-sdk` package directly in the browser and converts the returned `audioData` into a downloadable `Blob`
 - If you previously used the endpoint-based setup, reopen settings and add your Azure Speech region before generating audio
 - If you previously used the Azure OpenAI flow, reset settings once so the app clears the old localStorage schema
