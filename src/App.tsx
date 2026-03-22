@@ -190,14 +190,13 @@ function AppContent(): React.ReactElement {
       <ThemeSettingsSync theme={settings.theme} />
       <AppShell
         header={
-          <TopBar
-            subtitle="Generate audio from freeform text or a local Markdown file using your Azure Speech resource."
-            title={
-              <div className="app-title-block">
-                <p className="app-eyebrow">Browser-direct Azure Speech</p>
-                <h1>Azure Text To Speech</h1>
-              </div>
-            }
+            <TopBar
+              subtitle="Generate audio from freeform text or a local Markdown file using your Azure Speech resource."
+              title={
+                <div className="app-title-block">
+                  <h1>Azure Text To Speech</h1>
+                </div>
+              }
             trailing={
               <SettingsButton
                 isConfigured={isConfigured}
