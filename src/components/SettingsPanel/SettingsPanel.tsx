@@ -1,7 +1,7 @@
+import { Button, FormField, ThemeToggle } from '@mattgotteiner/spa-ui-controls';
 import {
   AUDIO_FORMATS,
   COMMON_VOICE_OPTIONS,
-  THEME_OPTIONS,
   type AppSettings,
 } from '../../types';
 import './SettingsPanel.css';
@@ -27,54 +27,61 @@ export function SettingsPanel({
   return (
     <div className="settings-panel">
       <section className="settings-section">
+        <h3 className="settings-section__title">Appearance</h3>
+
+        <FormField
+          hint="System follows your device preference. Light and dark override it in this browser."
+          label="Theme"
+        >
+          <ThemeToggle
+            value={settings.theme}
+            onChange={(theme) => onUpdate({ theme })}
+          />
+        </FormField>
+      </section>
+
+      <section className="settings-section">
         <h3 className="settings-section__title">Required</h3>
 
-        <div className="settings-field">
-          <label className="settings-field__label" htmlFor="settings-endpoint">
-            Endpoint URL
-          </label>
+        <FormField
+          hint="Use your Azure Speech resource endpoint from the Azure portal."
+          htmlFor="settings-endpoint"
+          label="Endpoint URL"
+        >
           <input
             id="settings-endpoint"
-            className="settings-field__input"
             type="url"
             placeholder="https://your-resource.cognitiveservices.azure.com"
             value={settings.endpoint}
             onChange={(event) => onUpdate({ endpoint: event.target.value })}
           />
-          <span className="settings-field__hint">
-            Use your Azure Speech resource endpoint from the Azure portal.
-          </span>
-        </div>
+        </FormField>
 
-        <div className="settings-field">
-          <label className="settings-field__label" htmlFor="settings-api-key">
-            API key
-          </label>
+        <FormField htmlFor="settings-api-key" label="API key">
           <input
             id="settings-api-key"
-            className="settings-field__input"
             type="password"
             placeholder="Paste your Azure Speech key"
             value={settings.apiKey}
             onChange={(event) => onUpdate({ apiKey: event.target.value })}
           />
-        </div>
+        </FormField>
 
-        <span className="settings-section__notice">
+        <p className="settings-section__notice">
           This browser-direct scaffold stores your key locally for dev/test use.
-        </span>
+        </p>
       </section>
 
       <section className="settings-section">
         <h3 className="settings-section__title">Audio</h3>
 
-        <div className="settings-field">
-          <label className="settings-field__label" htmlFor="settings-voice-preset">
-            Voice preset
-          </label>
+        <FormField
+          hint="The preset list uses broadly useful multilingual voices from the Azure Speech catalog."
+          htmlFor="settings-voice-preset"
+          label="Voice preset"
+        >
           <select
             id="settings-voice-preset"
-            className="settings-field__select"
             value={selectedVoicePreset}
             onChange={(event) => {
               const nextVoice = event.target.value;
@@ -93,37 +100,25 @@ export function SettingsPanel({
             </optgroup>
             <option value={CUSTOM_VOICE_OPTION}>Custom voice name</option>
           </select>
-          <span className="settings-field__hint">
-            The preset list uses broadly useful multilingual voices from the Azure Speech
-            catalog.
-          </span>
-        </div>
+        </FormField>
 
-        <div className="settings-field">
-          <label className="settings-field__label" htmlFor="settings-voice-name">
-            Voice name
-          </label>
+        <FormField
+          hint="You can still paste any Azure Speech voice name here if you want something outside the preset lists."
+          htmlFor="settings-voice-name"
+          label="Voice name"
+        >
           <input
             id="settings-voice-name"
-            className="settings-field__input"
             type="text"
             placeholder={COMMON_VOICE_OPTIONS[0].value}
             value={settings.voice}
             onChange={(event) => onUpdate({ voice: event.target.value })}
           />
-          <span className="settings-field__hint">
-            You can still paste any Azure Speech voice name here if you want something outside
-            the preset lists.
-          </span>
-        </div>
+        </FormField>
 
-        <div className="settings-field">
-          <label className="settings-field__label" htmlFor="settings-format">
-            Output format
-          </label>
+        <FormField htmlFor="settings-format" label="Output format">
           <select
             id="settings-format"
-            className="settings-field__select"
             value={settings.format}
             onChange={(event) =>
               onUpdate({ format: event.target.value as AppSettings['format'] })
@@ -133,17 +128,17 @@ export function SettingsPanel({
               <option key={format} value={format}>
                 {format}
               </option>
-              ))}
+            ))}
           </select>
-        </div>
+        </FormField>
 
-        <div className="settings-field">
-          <label className="settings-field__label" htmlFor="settings-speed">
-            Speed
-          </label>
+        <FormField
+          hint="Accepted range: 0.5 to 2.0."
+          htmlFor="settings-speed"
+          label="Speed"
+        >
           <input
             id="settings-speed"
-            className="settings-field__input"
             type="number"
             min="0.5"
             max="2"
@@ -151,43 +146,14 @@ export function SettingsPanel({
             value={settings.speed}
             onChange={(event) => onUpdate({ speed: Number(event.target.value) })}
           />
-          <span className="settings-field__hint">Accepted range: 0.5 to 2.0.</span>
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3 className="settings-section__title">Appearance</h3>
-
-        <div className="settings-field">
-          <span className="settings-field__label">Theme</span>
-          <div className="settings-field__radio-group">
-            {THEME_OPTIONS.map((theme) => (
-              <label key={theme} className="settings-field__radio-wrapper">
-                <input
-                  type="radio"
-                  name="theme"
-                  className="settings-field__radio"
-                  value={theme}
-                  checked={settings.theme === theme}
-                  onChange={() => onUpdate({ theme })}
-                />
-                <span className="settings-field__radio-label">
-                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                </span>
-              </label>
-            ))}
-          </div>
-          <span className="settings-field__hint">
-            System follows your device preference. Light and dark override it in this browser.
-          </span>
-        </div>
+        </FormField>
       </section>
 
       <section className="settings-section settings-section--clear">
         <h3 className="settings-section__title">Reset</h3>
-        <button className="settings-storage__clear-btn" type="button" onClick={onReset}>
+        <Button variant="danger" onClick={onReset}>
           Reset defaults
-        </button>
+        </Button>
       </section>
     </div>
   );

@@ -1,3 +1,4 @@
+import { Banner, Button } from '@mattgotteiner/spa-ui-controls';
 import type { SpeechResult } from '../../types';
 import './AudioResult.css';
 
@@ -43,9 +44,9 @@ export function AudioResult({
         <h2>No audio generated yet</h2>
         <p>Use the composer to send plain text, Markdown content, or both.</p>
         {error && (
-          <div className="audio-result__error" role="alert">
+          <Banner role="alert" tone="danger">
             {error}
-          </div>
+          </Banner>
         )}
       </div>
     );
@@ -60,20 +61,19 @@ export function AudioResult({
           <p className="audio-result__eyebrow">Latest audio</p>
           <h2>Your generated clip</h2>
         </div>
-        <button
-          className="audio-result__download"
-          type="button"
+        <Button
+          variant="secondary"
           aria-label="Download audio"
           onClick={onDownload}
         >
           Download audio
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <div className="audio-result__error" role="alert">
+        <Banner role="alert" tone="danger">
           {error}
-        </div>
+        </Banner>
       )}
 
       <audio

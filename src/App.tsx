@@ -1,4 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  AppShell,
+  Banner,
+  Button,
+  Panel,
+  ThemeProvider,
+  TopBar,
+  useTheme,
+} from '@mattgotteiner/spa-ui-controls';
 import './App.css';
 import { AudioResult } from './components/AudioResult/AudioResult';
 import { SettingsButton } from './components/SettingsButton/SettingsButton';
@@ -9,6 +18,7 @@ import {
   MAX_TTS_SSML_BYTES,
   type MarkdownAttachment,
   type SpeechResult,
+  type Theme,
 } from './types';
 import {
   getSpeechRequestSizeBytes,
@@ -16,6 +26,22 @@ import {
   toErrorMessage,
 } from './utils/api';
 import { buildSpeechInput, readMarkdownFile } from './utils/markdown';
+
+interface ThemeSettingsSyncProps {
+  theme: Theme;
+}
+
+function ThemeSettingsSync({ theme }: ThemeSettingsSyncProps): React.ReactElement | null {
+  const { setTheme, theme: activeTheme } = useTheme();
+
+  useEffect(() => {
+    if (activeTheme !== theme) {
+      setTheme(theme);
+    }
+  }, [activeTheme, setTheme, theme]);
+
+  return null;
+}
 
 function AppContent(): React.ReactElement {
   const { settings, updateSettings, resetSettings, isConfigured } = useSettingsContext();
@@ -27,22 +53,6 @@ function AppContent(): React.ReactElement {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [result, setResult] = useState<SpeechResult | null>(null);
-
-  useEffect(() => {
-    const root = document.documentElement;
-
-    root.classList.remove('theme-light', 'theme-dark');
-
-    if (settings.theme === 'light') {
-      root.classList.add('theme-light');
-    } else if (settings.theme === 'dark') {
-      root.classList.add('theme-dark');
-    }
-
-    return () => {
-      root.classList.remove('theme-light', 'theme-dark');
-    };
-  }, [settings.theme]);
 
   useEffect(() => {
     return () => {
@@ -174,47 +184,43 @@ function AppContent(): React.ReactElement {
   };
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="app-header__title-area">
-          <div>
-            <p className="app-eyebrow">Browser-direct Azure Speech</p>
-            <h1>Azure Text To Speech</h1>
-            <p className="app-subtitle">
-              Generate audio from freeform text or a local Markdown file using your
-              Azure Speech resource.
-            </p>
-          </div>
-        </div>
-        <div className="app-header__actions">
-          <SettingsButton
-            isConfigured={isConfigured}
-            onClick={() => setIsSettingsOpen(true)}
+    <ThemeProvider initialTheme={settings.theme} persist={false}>
+      <ThemeSettingsSync theme={settings.theme} />
+      <AppShell
+        header={
+          <TopBar
+            subtitle="Generate audio from freeform text or a local Markdown file using your Azure Speech resource."
+            title={
+              <div className="app-title-block">
+                <p className="app-eyebrow">Browser-direct Azure Speech</p>
+                <h1>Azure Text To Speech</h1>
+              </div>
+            }
+            trailing={
+              <SettingsButton
+                isConfigured={isConfigured}
+                onClick={() => setIsSettingsOpen(true)}
+              />
+            }
           />
-        </div>
-      </header>
-
-      <div className="app-body">
+        }
+      >
         {!isConfigured && (
-          <div className="configuration-banner" role="alert">
-            <span className="configuration-banner__icon" aria-hidden="true">
-              !
-            </span>
-            <span className="configuration-banner__text">
-              Configure your Azure Speech settings to get started.
-            </span>
-            <button
-              className="configuration-banner__button"
-              type="button"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              Open settings
-            </button>
-          </div>
+          <Banner
+            actions={
+              <Button variant="secondary" onClick={() => setIsSettingsOpen(true)}>
+                Open settings
+              </Button>
+            }
+            heading="Configuration required"
+            tone="warning"
+          >
+            Configure your Azure Speech settings to get started.
+          </Banner>
         )}
 
-        <main className="app-layout">
-          <section className="panel panel--input">
+        <div className="app-layout">
+          <Panel as="section">
             <TtsInput
               attachment={attachment}
               characterCount={characterCount}
@@ -232,9 +238,9 @@ function AppContent(): React.ReactElement {
               onRemoveAttachment={handleRemoveAttachment}
               requestSizeBytes={requestSizeBytes}
             />
-          </section>
+          </Panel>
 
-          <section className="panel panel--result">
+          <Panel as="section">
             <AudioResult
               error={generationError}
               hasConfiguration={isConfigured}
@@ -242,18 +248,18 @@ function AppContent(): React.ReactElement {
               onDownload={handleDownload}
               result={result}
             />
-          </section>
-        </main>
-      </div>
+          </Panel>
+        </div>
 
-      <SettingsSidebar
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onReset={handleResetSettings}
-        onUpdate={updateSettings}
-        settings={settings}
-      />
-    </div>
+        <SettingsSidebar
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          onReset={handleResetSettings}
+          onUpdate={updateSettings}
+          settings={settings}
+        />
+      </AppShell>
+    </ThemeProvider>
   );
 }
 

@@ -1,7 +1,7 @@
 .audio-result {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spa-space-4);
 }
 
 .audio-result--empty {
@@ -13,12 +13,12 @@
 .audio-result__header {
   align-items: flex-start;
   display: flex;
-  gap: 1rem;
+  gap: var(--spa-space-3);
   justify-content: space-between;
 }
 
 .audio-result__eyebrow {
-  color: var(--color-text-muted);
+  color: var(--spa-color-text-muted);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -27,29 +27,15 @@
 }
 
 .audio-result h2,
-.audio-result h3 {
-  color: var(--color-text);
+.audio-result h3,
+.audio-result dt,
+.audio-result dd {
   margin: 0;
 }
 
 .audio-result p {
-  color: var(--color-text-secondary);
+  color: var(--spa-color-text-secondary);
   margin: 0;
-}
-
-.audio-result__download {
-  background-color: var(--color-surface-elevated);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  color: var(--color-text);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 500;
-  padding: 0.75rem 1rem;
-}
-
-.audio-result__download:hover {
-  border-color: var(--color-primary);
 }
 
 .audio-result__player {
@@ -64,44 +50,34 @@
 }
 
 .audio-result__meta div {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--spa-color-surface);
+  border: 1px solid var(--spa-color-border);
+  border-radius: var(--spa-radius-md);
   padding: 0.9rem;
 }
 
 .audio-result__meta dt {
-  color: var(--color-text-muted);
+  color: var(--spa-color-text-muted);
   font-size: 0.85rem;
 }
 
 .audio-result__meta dd {
-  color: var(--color-text);
   font-size: 1rem;
   font-weight: 600;
   margin: 0.2rem 0 0;
 }
 
 .audio-result__excerpt {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--spa-color-surface);
+  border: 1px solid var(--spa-color-border);
+  border-radius: var(--spa-radius-md);
   padding: 1rem;
 }
 
 .audio-result__excerpt pre {
-  color: var(--color-text);
   font-family: inherit;
   margin: 0.75rem 0 0;
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.audio-result__error {
-  background: var(--color-error-bg);
-  border: 1px solid var(--color-error-border);
-  border-radius: var(--radius-md);
-  color: var(--color-error-text);
-  padding: 0.9rem 1rem;
 }

@@ -1,4 +1,5 @@
 import { useRef, type ChangeEvent } from 'react';
+import { Banner, Button, FormField } from '@mattgotteiner/spa-ui-controls';
 import type { MarkdownAttachment } from '../../types';
 import './TtsInput.css';
 
@@ -67,18 +68,17 @@ export function TtsInput({
         Azure Speech enforces the final SSML payload size, not just raw character count.
       </p>
 
-      <label className="tts-input__label" htmlFor="tts-input-textarea">
-        Message input
-      </label>
-      <textarea
-        id="tts-input-textarea"
-        className="tts-input__textarea"
-        aria-label="Message input"
-        placeholder="Type or paste the text you want to hear."
-        rows={12}
-        value={inputText}
-        onChange={handleChange}
-      />
+      <FormField htmlFor="tts-input-textarea" label="Message input">
+        <textarea
+          id="tts-input-textarea"
+          className="tts-input__textarea"
+          aria-label="Message input"
+          placeholder="Type or paste the text you want to hear."
+          rows={12}
+          value={inputText}
+          onChange={handleChange}
+        />
+      </FormField>
 
       <div className="tts-input__attachment-row">
         <input
@@ -91,20 +91,12 @@ export function TtsInput({
             void handleFileChange(event);
           }}
         />
-        <button
-          className="tts-input__button tts-input__button--secondary"
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-        >
+        <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
           Attach Markdown
-        </button>
-        <button
-          className="tts-input__button tts-input__button--ghost"
-          type="button"
-          onClick={onClear}
-        >
+        </Button>
+        <Button variant="ghost" onClick={onClear}>
           Clear input
-        </button>
+        </Button>
       </div>
 
       {attachment && (
@@ -113,50 +105,49 @@ export function TtsInput({
             <strong>{attachment.name}</strong>
             <span>{attachment.size.toLocaleString()} bytes</span>
           </div>
-          <button type="button" onClick={onRemoveAttachment}>
+          <Button size="sm" variant="ghost" onClick={onRemoveAttachment}>
             Remove
-          </button>
+          </Button>
         </div>
       )}
 
       {composerMessage && (
-        <div className="tts-input__notice" role="status">
+        <Banner className="tts-input__banner" tone="success">
           {composerMessage}
-        </div>
+        </Banner>
       )}
 
       {composerError && (
-        <div className="tts-input__error" role="alert">
+        <Banner className="tts-input__banner" role="alert" tone="danger">
           {composerError}
-        </div>
+        </Banner>
       )}
 
       {!isConfigured && (
-        <div className="tts-input__notice">
+        <Banner className="tts-input__banner" tone="info">
           Add your Azure Speech endpoint and API key in settings before generating audio.
-        </div>
+        </Banner>
       )}
 
       {isOverCharacterLimit && (
-        <div className="tts-input__error" role="alert">
+        <Banner className="tts-input__banner" role="alert" tone="danger">
           Azure Speech real-time TTS caps each SSML request at {maxRequestBytes.toLocaleString()}{' '}
           bytes. Shorten the input until the payload fits.
-        </div>
+        </Banner>
       )}
 
-      <button
-        className="tts-input__button tts-input__button--primary"
-        type="button"
+      <Button
         disabled={
           isGenerating ||
           !isConfigured ||
           characterCount === 0 ||
           isOverCharacterLimit
         }
+        fullWidth
         onClick={onGenerate}
       >
         {isGenerating ? 'Generating audio…' : 'Generate audio'}
-      </button>
+      </Button>
     </div>
   );
 }
