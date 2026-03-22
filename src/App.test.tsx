@@ -259,6 +259,7 @@ describe('App', () => {
 
     expect(screen.getByLabelText('Generated audio player')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Download audio' })).toBeInTheDocument();
+    expect(screen.queryByText('Source excerpt')).not.toBeInTheDocument();
   });
 
   it('reads attached markdown files and includes the contents in the request', async () => {
@@ -386,25 +387,25 @@ describe('App', () => {
     expect(screen.getByLabelText('SSML input')).toBeInTheDocument();
     expect(screen.queryByLabelText('Message input')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Attach Markdown' })).not.toBeInTheDocument();
-    expect(screen.getByText(/attach markdown is available only in plain-text mode/i)).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Generated SSML' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Preview of the Azure Speech payload' }),
+    ).not.toBeInTheDocument();
   });
 
-  it('wraps raw SSML in the default voice when no voice tag is present', async () => {
+  it('hides the generated SSML preview after switching from plain text into SSML mode', async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'SSML' }));
-    fireEvent.change(screen.getByLabelText('SSML input'), {
-      target: {
-        value:
-          '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><p>Hello there</p></speak>',
-      },
-    });
+    await user.type(screen.getByLabelText('Message input'), 'Fish & Chips <3');
     await user.click(screen.getByRole('tab', { name: 'Generated SSML' }));
+    expect(screen.getByLabelText('Generated SSML preview')).toBeInTheDocument();
 
-    const preview = screen.getByLabelText('Generated SSML preview');
-    expect(preview).toHaveTextContent('<voice name="en-US-AvaMultilingualNeural">');
-    expect(screen.getByText(/default voice selector resolves to en-us-avamultilingualneural/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'SSML' }));
+
+    expect(screen.getByLabelText('SSML input')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Generated SSML preview')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Generated SSML' })).not.toBeInTheDocument();
   });
 
   it('passes raw SSML through when explicit voice tags are present', async () => {
