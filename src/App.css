@@ -15,6 +15,16 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.spa-topbar__trailing .spa-settings-button {
+  background-color: var(--spa-color-surface);
+  border: 1px solid var(--spa-color-border);
+}
+
+.spa-topbar__trailing .spa-settings-button:hover:not(:disabled) {
+  background-color: var(--spa-color-surface-elevated);
+  border-color: var(--spa-color-border-muted);
+}
+
 @media (max-width: 600px) {
   .app-title-block h1 {
     font-size: 1rem;
