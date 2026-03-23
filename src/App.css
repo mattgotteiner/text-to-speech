@@ -15,14 +15,28 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-.spa-topbar__trailing .spa-settings-button {
-  background-color: var(--spa-color-surface);
+.spa-topbar__trailing .spa-settings-button--topbar.spa-icon-button {
+  background: transparent;
   border: 1px solid var(--spa-color-border);
+  border-radius: var(--spa-radius-md);
+  height: 40px;
+  padding: 8px;
+  width: 40px;
 }
 
-.spa-topbar__trailing .spa-settings-button:hover:not(:disabled) {
-  background-color: var(--spa-color-surface-elevated);
-  border-color: var(--spa-color-border-muted);
+.spa-topbar__trailing .spa-settings-button--topbar .spa-settings-button__icon {
+  color: var(--spa-color-text-secondary);
+}
+
+@media (hover: hover) {
+  .spa-topbar__trailing .spa-settings-button--topbar.spa-icon-button:hover:not(:disabled) {
+    background-color: var(--spa-color-surface);
+    border-color: var(--spa-color-border-muted);
+  }
+
+  .spa-topbar__trailing .spa-settings-button--topbar:hover .spa-settings-button__icon {
+    color: var(--spa-color-text);
+  }
 }
 
 @media (max-width: 600px) {

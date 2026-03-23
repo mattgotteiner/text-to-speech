@@ -230,6 +230,7 @@ function AppContent(): React.ReactElement {
               <SettingsButton
                 onClick={() => setIsSettingsOpen(true)}
                 showBadge={!isConfigured}
+                variant="topbar"
               />
             }
           />
