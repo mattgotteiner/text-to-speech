@@ -12,10 +12,6 @@ export default defineConfig({
   base: './',
   resolve: {
     alias: {
-      '@mattgotteiner/spa-ui-controls/styles.css': resolve(
-        __dirname,
-        'node_modules/@mattgotteiner/spa-ui-controls/dist/index.css'
-      ),
       '/favicon.svg': resolve(__dirname, 'public/favicon.svg'),
     },
   },

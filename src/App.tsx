@@ -4,13 +4,12 @@ import {
   Banner,
   Button,
   Panel,
+  SettingsButton,
   ThemeProvider,
   TopBar,
-  useTheme,
 } from '@mattgotteiner/spa-ui-controls';
 import './App.css';
 import { AudioResult } from './components/AudioResult/AudioResult';
-import { SettingsButton } from './components/SettingsButton/SettingsButton';
 import { SettingsSidebar } from './components/SettingsSidebar/SettingsSidebar';
 import { TtsInput } from './components/TtsInput/TtsInput';
 import { SettingsProvider, useSettingsContext } from './context/SettingsContext';
@@ -19,7 +18,6 @@ import {
   type AuthoringMode,
   type MarkdownAttachment,
   type SpeechResult,
-  type Theme,
 } from './types';
 import {
   buildSpeechRequestPayload,
@@ -29,22 +27,6 @@ import {
 } from './utils/api';
 import { buildSpeechInput, readMarkdownFile } from './utils/markdown';
 import { getEffectiveVoiceName } from './utils/voices';
-
-interface ThemeSettingsSyncProps {
-  theme: Theme;
-}
-
-function ThemeSettingsSync({ theme }: ThemeSettingsSyncProps): React.ReactElement | null {
-  const { setTheme, theme: activeTheme } = useTheme();
-
-  useEffect(() => {
-    if (activeTheme !== theme) {
-      setTheme(theme);
-    }
-  }, [activeTheme, setTheme, theme]);
-
-  return null;
-}
 
 function AppContent(): React.ReactElement {
   const { settings, updateSettings, resetSettings, isConfigured, persistenceMessage } =
@@ -230,21 +212,24 @@ function AppContent(): React.ReactElement {
   };
 
   return (
-    <ThemeProvider initialTheme={settings.theme} persist={false}>
-      <ThemeSettingsSync theme={settings.theme} />
+    <ThemeProvider
+      onThemeChange={(theme) => updateSettings({ theme })}
+      persist={false}
+      theme={settings.theme}
+    >
       <AppShell
         header={
-            <TopBar
-              subtitle="Generate audio from freeform text or a local Markdown file using your Azure Speech resource."
-              title={
-                <div className="app-title-block">
-                  <h1>Azure Text To Speech</h1>
-                </div>
-              }
+          <TopBar
+            subtitle="Generate audio from freeform text or a local Markdown file using your Azure Speech resource."
+            title={
+              <div className="app-title-block">
+                <h1>Azure Text To Speech</h1>
+              </div>
+            }
             trailing={
               <SettingsButton
-                isConfigured={isConfigured}
                 onClick={() => setIsSettingsOpen(true)}
+                showBadge={!isConfigured}
               />
             }
           />
