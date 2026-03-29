@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Button, FormField } from '@mattgotteiner/spa-ui-controls';
+import { Button, FormField, ThemeToggle } from '@mattgotteiner/spa-ui-controls';
 import {
   AUDIO_FORMATS,
   SPEECH_REGION_OPTIONS,
-  THEME_OPTIONS,
   VOICE_CATALOG_OPTIONS,
   type AppSettings,
   type VoiceCatalogOption,
@@ -58,29 +57,11 @@ export function SettingsPanel({
       <section className="settings-section">
         <h3 className="settings-section__title">Appearance</h3>
 
-        <div className="settings-field">
-          <span className="settings-field__label">Theme</span>
-          <div className="settings-field__radio-group">
-            {THEME_OPTIONS.map((theme) => (
-              <label key={theme} className="settings-field__radio-wrapper">
-                <input
-                  type="radio"
-                  name="theme"
-                  className="settings-field__radio"
-                  value={theme}
-                  checked={settings.theme === theme}
-                  onChange={() => onUpdate({ theme })}
-                />
-                <span className="settings-field__radio-label">
-                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                </span>
-              </label>
-            ))}
-          </div>
-          <span className="settings-field__hint">
-            System follows your device preference. Light and dark override it in this browser.
-          </span>
-        </div>
+        <ThemeToggle value={settings.theme} onChange={(theme) => onUpdate({ theme })} />
+
+        <p className="settings-section__notice">
+          System follows your device preference. Light and dark override it in this browser.
+        </p>
       </section>
 
       <section className="settings-section">
